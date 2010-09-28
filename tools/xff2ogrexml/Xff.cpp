@@ -159,9 +159,18 @@ void Xff::parseVertices(){
 			int attributes = numberOfAttributes;
 			parseStripHeader();
 			parsePosition();
-			parseNormal();
-			attributes -= 2;
-			parseColour(attributes);
+			Entry shortCut;
+			xff >> shortCut;
+			if(shortCut == Entry(1, 0, 0, 5)){
+				//normals aren't always there either!
+				xff.seekg(-4, std::ios_base::cur);
+				attributes--;
+				parseColour(attributes);
+			} else{
+				parseNormal(shortCut);
+				attributes -= 2;
+				parseColour(attributes);
+			}
 
 			if(attributes == 1){
 				parseVertexWeight();
@@ -224,24 +233,27 @@ void Xff::parsePosition(){
 	xff.read(reinterpret_cast<char*>(&data[0]), entry.count * sizeof(Ogre::Vector3));
 	for(int i = 0; i < entry.count; i++)
 		std::cout << data[i] << '\n';
+
 }
 
 
 
-void Xff::parseNormal(){
-	Entry entry;
-	xff >> entry;
+void Xff::parseNormal(const Entry &entry){
+
+//normals are optional
+//	Entry entry;
+//	xff >> entry;
 	if(entry.type == Entry::FLOAT32){
 		boost::scoped_array<Ogre::Vector3> data(new Ogre::Vector3[entry.count]);
 		xff.read(reinterpret_cast<char*>(&data[0]), entry.count * sizeof(Ogre::Vector3));
 		for(int i = 0; i < entry.count; i++)
-			std::cout << "position" << data[i] << '\n';
+			std::cout << "normal32" << data[i] << '\n';
 		return;
 	} else if(entry.type == Entry::FLOAT16){
 		for(int i = 0; i < entry.count; i++){
 			Fixed16 fixed;
 			xff.read(reinterpret_cast<char*>(&fixed), sizeof(fixed));
-			std::cout << "normal " << fixed.getVector() << '\n';
+			std::cout << "normal16 " << fixed.getVector() << '\n';
 		}
 		return;
 	}

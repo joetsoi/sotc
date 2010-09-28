@@ -1,6 +1,9 @@
 I'm too impatient for the HD version next year so this is an
-exploration of shadow of the colossus' file formats and a 
-testing ground for exploring libraries like boost.
+exploration of shadow of the colossus' file formats.
+
+I'll also make an attempt at trying out silly c++ techniques
+(templates, policies, traits) or whatever else sounds interseting
+in libs like boost
 
 much stuff from
 

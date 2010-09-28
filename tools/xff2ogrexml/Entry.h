@@ -26,25 +26,29 @@ namespace sotc {
 					&& count == r.count && type == r.type);
 		}
 
+		/*! \brief pretty print an Entry in a nice human readable format
+		 *
+		 * print in a human readable way, i'm just using this for debugging
+		 * at the moment, but it's good if i want to explore the format further
+		 * later
+		 */
+		inline friend std::ostream &operator<<(std::ostream &stream, Entry entry){
+			stream << "i: " << (int)entry.index << " m: " << (int)entry.mask
+				<< " #: " << (int)entry.count << " t: " << (int)entry.type;
+			return stream;
+		}
 
+		/*! \brief read an entry form a binary stream
+		 *
+		 * syntactic sugar, constantly typing reinterpret casting from ifstream.read
+		 * is not only annoying but it's an eyesore
+		 */
+		inline friend std::istream &operator>>(std::istream &stream, Entry &entry){
+			stream.read(reinterpret_cast<char*>(&entry), sizeof(Entry));
+			return stream;
+		}
 	};
-
-	/*! \brief pretty print an Entry in a nice human readable format
-	 *
-	 * print in a human readable way, i'm just using this for debugging
-	 * at the moment, but it's good if i want to explore the format further
-	 * later
-	 */
-	std::ostream &operator<<(std::ostream &stream, Entry entry);
-
-	/*! \brief read an entry form a binary stream
-	 *
-	 * syntactic sugar, constantly typing reinterpret casting from ifstream.read
-	 * is not only annoying but it's an eyesore
-	 */
-	std::istream &operator>>(std::istream &stream, Entry &entry);
-
-
+	
 	struct Fixed16{
 		int16_t x, y , z, w;
 		inline Ogre::Vector4 getVector() const { return Ogre::Vector4(
@@ -56,32 +60,47 @@ namespace sotc {
 	};
 
 	struct Colour{
+		inline friend std::ostream& operator<<(std::ostream &stream, Colour &c){
+			stream << "Colour " << (int)c.r << " " << (int)c.g << " " << (int)c.b << " " << (int)c.a;
+			return stream;
+		}
 		uint8_t r, g, b, a;
 	};
 
-	std::ostream& operator<<(std::ostream &stream, Colour &c);
 
 	struct TextureMap{
 		uint16_t u, v;
-	};
 
-	std::ostream& operator<<(std::ostream &stream, TextureMap &t);
+		inline friend std::ostream& operator<<(std::ostream &stream, TextureMap &t){
+			stream << "texture " << t.u << " " << t.v;
+			return stream;
+		}
+	};
 
 	struct VertexWeight{
 		float boneA;
 		float boneB;
 		float boneC;
 		uint32_t numberOfBones;
+		inline friend std::ostream& operator<<(std::ostream &stream, VertexWeight &t){
+			stream << "bone " << t.boneA << " " << t.boneB << " "<< t.boneC << " " << t.numberOfBones;
+			return stream;
+		}
 	};
 
-	std::ostream& operator<<(std::ostream &stream, VertexWeight &w);
 	struct StartState{
 		uint8_t a, b;
 		uint16_t c;
 		uint32_t d, e, f;
+
+		inline friend std::ostream &operator<<(std::ostream &stream, StartState state){
+			stream << "StartState " << (int)state.a << " " << (int)state.b << " " << (int)state.c
+				<< " " << (int)state.d << " " << (int)state.e << " " << (int)state.f;
+			return stream;
+
+		}
 	};
 
-	std::ostream &operator<<(std::ostream &stream, StartState state);
 }
 
 #endif
