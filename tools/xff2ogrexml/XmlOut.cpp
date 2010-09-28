@@ -62,10 +62,12 @@ int main(int argc, char *argv[]){
 //	std::copy(istream_iterator(xff), istream_iterator(), std::back_inserter(buffer));
 if(argc > 1){
 	for(int i = 1; i < argc; i++){
+		std::ifstream file(argv[i]);
 		Xff xff(argv[i]);
 		XmlOut out(xff);
 	}
 }else{
+
 	Xff xff("/home/foobat/dormin/reeng/knight_A.nmo");
 	XmlOut out(xff);
 }
