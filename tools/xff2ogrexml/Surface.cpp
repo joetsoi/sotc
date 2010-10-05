@@ -8,12 +8,19 @@ Surface::Surface(const SurfaceHeader &surfaceHeader){
 
 void Surface::uniqueVertices(){
 
+	int vertexCount = 0;
 	foreach(std::vector<Vertex> &strip, strips){
 		std::vector<int> indexedVertexStrip;
 		foreach(Vertex &vertex, strip){
-			uniqueMap.insert(std::pair<Vertex, int>(vertex, vertexCount));
+			UniqueMap::iterator lb = uniqueMap.lower_bound(vertex);
+			if(lb != uniqueMap.end() && !(uniqueMap.key_comp()(vertex, lb->first))){
+
+			} else {
+				uniqueMap.insert(lb, std::pair<Vertex, int>(vertex, vertexCount));
+				//uniqueMap[vertex] == vertexCount;
+				vertexCount++;
+			}
 			indexedVertexStrip.push_back(uniqueMap[vertex]);
-			vertexCount++;
 		}
 		indexedVertices.push_back(indexedVertexStrip);
 	}

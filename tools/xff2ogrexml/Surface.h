@@ -63,7 +63,7 @@ namespace sotc {
 			//! a list of vertices
 			std::vector<std::vector<int> > indexedVertices;
 
-			int vertexCount;
+			//int vertexCount;
 
 			std::vector<Triple> faces;
 	};
