@@ -190,9 +190,9 @@ void Xff::stateParse(){
 	// as reading this means i'm off alignment with geometry.size by + 4. FSFfdsffarafda
 	xff >> last;
 	foreach(GeometryHeader geometry, geometryHeaders){
-		if(geometry.surface >= surfaces.size())
-			surfaces.push_back(Surface());
-		std::cout << "geom : " << geometry.surface << " surf: " << surfaces.size() << '\n';
+		//if(geometry.surface >= surfaces.size())
+		//	surfaces.push_back(Surface());
+		//std::cout << "geom : " << geometry.surface << " surf: " << surfaces.size() << '\n';
 
 		//int numberOfAttributes = parseGeometryDataHeader();
 		parseGeometryDataHeader(last);
@@ -390,7 +390,7 @@ State Xff::runGetBones(const GeometryHeader &head, const Entry &entry, std::vect
 State Xff::runFinishStrip(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 
 	if(vertices.size() > 0){
-		surfaces.at(head.surface).addStrip(vertices);
+		surfaces[head.surface].addStrip(vertices);
 		vertices.clear();
 	}
 

@@ -4,6 +4,7 @@
 #define Xff_h
 #include <iostream>
 #include <fstream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -21,7 +22,7 @@ namespace sotc {
 			//Xff(std::ifstream &xff);
 			Xff(const std::string &filename);
 
-			std::vector<Surface>& getSurfaces() { return surfaces; }
+			std::map<int, Surface>& getSurfaces() { return surfaces; }
 			std::string filename;
 
 		private:
@@ -128,7 +129,7 @@ namespace sotc {
 			std::vector<TextureHeader> textureHeaders;
 			std::vector<SurfaceHeader> surfaceHeaders;
 			std::vector<GeometryHeader> geometryHeaders;
-			std::vector<Surface> surfaces;
+			std::map<int, Surface> surfaces;
 
 			std::ifstream xff;
 

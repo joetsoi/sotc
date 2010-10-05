@@ -12,8 +12,10 @@ XmlOut::XmlOut( Xff &xff){
 
 	TiXmlElement *submeshes = new TiXmlElement("submeshes");
 	mesh->LinkEndChild(submeshes);
-	foreach(Surface &surface, xff.getSurfaces()){
-		surface.createTriangleList();
+	
+	typedef std::pair<int, Surface> SurfacePair;
+	foreach(SurfacePair surface, xff.getSurfaces()){
+		surface.second.createTriangleList();
 		TiXmlElement *submesh = new TiXmlElement("submesh");
 		submeshes->LinkEndChild(submesh);
 
@@ -23,22 +25,22 @@ XmlOut::XmlOut( Xff &xff){
 		TiXmlElement *faces = new TiXmlElement("faces");
 		submesh->LinkEndChild(faces);
 
-		foreach(const Triple &triangle, surface.getTriangles()){
+		foreach(const Triple &triangle, surface.second.getTriangles()){
 			TiXmlElement *face = new TiXmlElement("face");
 			faces->LinkEndChild(face);
 			face->SetAttribute("v1", triangle.get<0>());
 			face->SetAttribute("v2", triangle.get<1>());
 			face->SetAttribute("v3", triangle.get<2>());
 		}	
-		//surface.uniqueVertices();
+		//surface.second.uniqueVertices();
 		TiXmlElement *geometry = new TiXmlElement("geometry");
 		submesh->LinkEndChild(geometry);
-		geometry->SetAttribute("vertexcount", surface.getUniqueMap().size());
+		geometry->SetAttribute("vertexcount", surface.second.getUniqueMap().size());
 
 		TiXmlElement *vertexbuffer = new TiXmlElement("vertexbuffer");
 		geometry->LinkEndChild(vertexbuffer);
 
-		foreach(const UniqueMap::value_type &pair, surface.getUniqueMap()){
+		foreach(const UniqueMap::value_type &pair, surface.second.getUniqueMap()){
 			TiXmlElement *vertex = new TiXmlElement("vertex");
 			vertexbuffer->LinkEndChild(vertex);
 			vertexbuffer->SetAttribute("positions", "true");	
