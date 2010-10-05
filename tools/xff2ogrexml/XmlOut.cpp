@@ -10,13 +10,26 @@ XmlOut::XmlOut( Xff &xff){
 	TiXmlElement *mesh = new TiXmlElement("mesh");
 	doc.LinkEndChild(mesh);
 
-	foreach(const Surface &surface, xff.getSurfaces()){
+	TiXmlElement *submeshes = new TiXmlElement("submeshes");
+	mesh->LinkEndChild(submeshes);
+	foreach(Surface &surface, xff.getSurfaces()){
+		surface.createTriangleList();
 		TiXmlElement *submesh = new TiXmlElement("submesh");
-		mesh->LinkEndChild(submesh);
+		submeshes->LinkEndChild(submesh);
 
 		submesh->SetAttribute("material", "testmaterial");
 		submesh->SetAttribute("usesharedvertices", "false");
 
+		TiXmlElement *faces = new TiXmlElement("faces");
+		submesh->LinkEndChild(faces);
+
+		foreach(const Triple &triangle, surface.getTriangles()){
+			TiXmlElement *face = new TiXmlElement("face");
+			faces->LinkEndChild(face);
+			face->SetAttribute("v1", triangle.get<0>());
+			face->SetAttribute("v2", triangle.get<1>());
+			face->SetAttribute("v3", triangle.get<2>());
+		}	
 		//surface.uniqueVertices();
 		TiXmlElement *geometry = new TiXmlElement("geometry");
 		submesh->LinkEndChild(geometry);
@@ -29,7 +42,7 @@ XmlOut::XmlOut( Xff &xff){
 			TiXmlElement *vertex = new TiXmlElement("vertex");
 			vertexbuffer->LinkEndChild(vertex);
 			vertexbuffer->SetAttribute("positions", "true");	
-			
+
 			TiXmlElement *position = new TiXmlElement("position");
 			vertex->LinkEndChild(position);
 
@@ -38,20 +51,10 @@ XmlOut::XmlOut( Xff &xff){
 			position->SetDoubleAttribute("z", pair.first.getPosition().z);
 		}
 
-	TiXmlElement *faces = new TiXmlElement("faces");
-	geometry->LinkEndChild(faces);
-	/*
-	foreach(Triple &triangle, surface.getTriangles()){
-		TiXmlElement *face = new TiXmlElement("face");
-		face->LinkEndChild(face);
-		face->SetAttribute("v1", triangle.get<0>());
-		face->SetAttribute("v2", triangle.get<1>());
-		face->SetAttribute("v3", triangle.get<2>());
-	}
-	*/
+
 
 	}
-	//doc.SaveFile("test.xml");
+	doc.SaveFile(xff.filename + ".xml");
 }
 
 int main(int argc, char *argv[]){

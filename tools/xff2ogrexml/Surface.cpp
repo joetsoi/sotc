@@ -20,17 +20,18 @@ void Surface::uniqueVertices(){
 }
 
 void Surface::createTriangleList(){
-	if(uniqueMap.size() == 0)
-		uniqueVertices();
-	foreach(std::vector<int> indexStrip, indexedVertices){
-		for(std::vector<int>::const_iterator i = indexStrip.begin(); i < indexStrip.end() - 2; i++){
-			if(*i == *(i+2) || *i == *(i+1) || *(i+1) == *(i+2))
-				continue;
-			else {
-				faces.push_back(Triple(*i, *(i+1), *(i+2)));
-			}
+	if(faces.size() == 0){
+		if(uniqueMap.size() == 0)
+			uniqueVertices();
+		foreach(std::vector<int> indexStrip, indexedVertices){
+			for(std::vector<int>::const_iterator i = indexStrip.begin(); i < indexStrip.end() - 2; i++){
+				if(*i == *(i+2) || *i == *(i+1) || *(i+1) == *(i+2))
+					continue;
+				else {
+					faces.push_back(Triple(*i, *(i+1), *(i+2)));
+				}
 
+			}
 		}
 	}
-
 }

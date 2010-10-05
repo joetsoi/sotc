@@ -15,28 +15,14 @@ namespace Ogre{
 }
 namespace sotc {
 	struct Entry;
+	class State;
 	class Xff{
 		public:
 			//Xff(std::ifstream &xff);
 			Xff(const std::string &filename);
 
 			std::vector<Surface>& getSurfaces() { return surfaces; }
-			enum eState {
-				START,
-				GET_POSITION,
-				GET_NORMAL,
-				GET_TEXTURE,
-				GET_COLOUR,
-				GET_BONES,
-				FINISH_STRIP,
-				GET_SPECIAL
-			};
-
-			struct State{
-				State(eState state, const Entry &entry) : state(state), entry(entry) {}
-				eState state;
-				Entry entry;
-			};
+			std::string filename;
 
 		private:
 			/*! \brief read and check a magic number of 4 char length
@@ -147,15 +133,15 @@ namespace sotc {
 			std::ifstream xff;
 
 			void stateParse();
-			State runStart(const Entry &entry);
-			State runGetPosition(const Entry &entry);
-			State runGetNormal(const Entry &entry);
-			State runGetTexture(const Entry &entry);
-			State runGetColour(const Entry &entry);
-			State runGetBones(const Entry &entry);
+			State runStart(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices);
+			State runGetPosition(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices);
+			State runGetNormal(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices);
+			State runGetTexture(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices);
+			State runGetColour(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices);
+			State runGetBones(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices);
 
 			Entry last;
-			State runFinishStrip(const Entry &entry);
+			State runFinishStrip(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices);
 	}; 
 }
 #endif

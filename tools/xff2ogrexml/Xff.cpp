@@ -1,18 +1,35 @@
+#include "Xff.h"
 #include <exception>
 #include <stdint.h>
-#include <string.h>
 #include <cassert>
-#include "Xff.h"
+
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 
 #include <OgreVector3.h>
-#include <OgreVector4.h>
 
-#include "Entry.h"
 #include "Vertex.h"
+namespace sotc {
+	enum eState {
+		START,
+		GET_POSITION,
+		GET_NORMAL,
+		GET_TEXTURE,
+		GET_COLOUR,
+		GET_BONES,
+		FINISH_STRIP,
+		GET_SPECIAL
+	};
+
+	class State{
+		public:
+			State(eState state, const Entry &entry) : state(state), entry(entry) {}
+			eState state;
+			Entry entry;
+	};
+}
 
 using namespace sotc;
 
@@ -20,17 +37,17 @@ using namespace sotc;
 // my short hand for reading an object because i hate writing reinerpret cast
 // replace with stream operator>> as this is just to make the code less clutered
 template <typename T>
-	T readObject(std::ifstream &xff){
-		T t;
-		xff.read(reinterpret_cast<char*>(&t), sizeof(T));
-		return t;
+T readObject(std::ifstream &xff){
+	T t;
+	xff.read(reinterpret_cast<char*>(&t), sizeof(T));
+	return t;
 }
 
 
 
 class ParseException : public std::runtime_error {
-	public:
-		ParseException(const char *msg) : std::runtime_error(msg){}
+public:
+	ParseException(const char *msg = "") : std::runtime_error(msg){}
 
 };
 
@@ -39,45 +56,53 @@ class ParseException : public std::runtime_error {
 /*! report the expected and actual results of a magic number
 */
 class BadMagicException : public ParseException {
-	public:
-		BadMagicException(const char *expected, const char *actual)
-			: ParseException("Bad Magic Exception")
-			, expected(expected), actual(actual){}
-		const char *expected;
-		const char *actual;
+public:
+	BadMagicException(const char *expected, const char *actual)
+		: ParseException("Bad Magic Exception")
+		, expected(expected), actual(actual){}
+	const char *expected;
+	const char *actual;
 };
 
 
 
 class MalformedEntry : public ParseException {
 public:
-	MalformedEntry(int location, Entry entry, const char *error) 
-		: ParseException(error)
-		, location(location), entry(entry) {}
-	
-	int location;
-	Entry entry;
+MalformedEntry(int location, Entry entry, const char *error) 
+	: ParseException(error)
+	, location(location), entry(entry) {}
+
+int location;
+Entry entry;
 };
 
 
 
-Xff::Xff(const std::string &filename) {
-	xff.open(filename.c_str(), std::ios::in|std::ios::binary);
-	if(xff){
-		try{
-			readAndCheckMagic4("xff\x00");
-			readLocations();
-			readHeaders();
-			stateParse();
-		} catch (BadMagicException &e){
-			std::cerr << e.what() << " expected: " << e.expected
-				<< " got: " << e.actual << std::endl;
-		} 
-		xff.close();
-	} else {
-		std::cerr << "error opening file" << std::endl;
+class MismatchedStrip : public ParseException {
+public:
+	MismatchedStrip() : ParseException(){}
+};
+
+
+
+Xff::Xff(const std::string &filename) : filename(filename){
+xff.open(filename.c_str(), std::ios::in|std::ios::binary);
+if(xff){
+	try{
+		readAndCheckMagic4("xff\x00");
+	} catch (BadMagicException &e){
+		std::cerr << e.what() << " expected: " << e.expected
+			<< " got: " << e.actual << std::endl;
 	}
-	//readVertices(xff);
+	readLocations();
+	readHeaders();
+	stateParse();
+
+	xff.close();
+} else {
+	std::cerr << "error opening file" << std::endl;
+}
+//readVertices(xff);
 }
 
 
@@ -126,7 +151,7 @@ void Xff::readHeaders(){
 	xff.seekg(rodataAddress + headers.textures.address, std::ios::beg);
 	textureHeaders.resize(headers.textures.numberOfEntries);
 	xff.read(reinterpret_cast<char*>(&textureHeaders[0])
-				, headers.textures.numberOfEntries * sizeof(TextureHeader));
+			, headers.textures.numberOfEntries * sizeof(TextureHeader));
 
 	//assert that the surface header is after the texture header;
 	//headers should be contigious if they aren't something has gone wrong
@@ -134,49 +159,62 @@ void Xff::readHeaders(){
 	assert(xff.tellg() == rodataAddress + headers.surfaces.address);
 	surfaceHeaders.resize(headers.surfaces.numberOfEntries);
 	xff.read(reinterpret_cast<char*>(&surfaceHeaders[0])
-				, headers.surfaces.numberOfEntries * sizeof(SurfaceHeader));
+			, headers.surfaces.numberOfEntries * sizeof(SurfaceHeader));
 
 	//same with the geometry header
 	assert(xff.tellg() == rodataAddress + headers.geometry.address);
 	geometryHeaders.resize(headers.geometry.numberOfEntries);
 	xff.read(reinterpret_cast<char*>(&geometryHeaders[0])
-				, headers.geometry.numberOfEntries * sizeof(GeometryHeader));
+			, headers.geometry.numberOfEntries * sizeof(GeometryHeader));
 }
 
 
 
 void Xff::stateParse(){
-	std::vector<boost::function<State (Entry)> > stateTable;
+	std::vector<boost::function<State (const GeometryHeader &header
+						, const Entry &entry, std::vector<Vertex> &vertices)> > stateTable;
 
-	stateTable.push_back(boost::bind(&Xff::runStart, this, _1));
-	stateTable.push_back(boost::bind(&Xff::runGetPosition, this, _1));
-	stateTable.push_back(boost::bind(&Xff::runGetNormal, this, _1));
-	stateTable.push_back(boost::bind(&Xff::runGetTexture, this, _1));
-	stateTable.push_back(boost::bind(&Xff::runGetColour, this, _1));
-	stateTable.push_back(boost::bind(&Xff::runGetBones, this, _1));
-	stateTable.push_back(boost::bind(&Xff::runFinishStrip, this, _1));
+	stateTable.push_back(boost::bind(&Xff::runStart, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Xff::runGetPosition, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Xff::runGetNormal, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Xff::runGetTexture, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Xff::runGetColour, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Xff::runGetBones, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Xff::runFinishStrip, this, _1, _2, _3));
 
 	xff.seekg(rodataAddress, std::ios::beg);
+
 	// this is a stupid variable i hate it, it's all because of me not figuring out when
 	// there is an extra section of (0x17,start,0x17) or a bunch of 0s at the end of each
 	// strip of geometry section, meaning i have to align the while loop below with +4
 	// as reading this means i'm off alignment with geometry.size by + 4. FSFfdsffarafda
 	xff >> last;
 	foreach(GeometryHeader geometry, geometryHeaders){
+		if(geometry.surface >= surfaces.size())
+			surfaces.push_back(Surface());
+		std::cout << "geom : " << geometry.surface << " surf: " << surfaces.size() << '\n';
+
 		//int numberOfAttributes = parseGeometryDataHeader();
 		parseGeometryDataHeader(last);
 		State currentState = State(START, last);
+
+		//vertices is changed by each of the states and in
+		//runFinish strip is added to the surface, this doesn't feel as neat
+		//as it should be
+		std::vector<Vertex> vertices;
 		while((uint32_t)xff.tellg() - rodataAddress != geometry.offset + geometry.size + 4){
 			try {
-				currentState = stateTable.at(currentState.state)(currentState.entry);
+				//function invocation
+				currentState = stateTable.at(currentState.state)
+					(geometry, currentState.entry, vertices);
 			} catch (std::out_of_range) {
 				std::cerr << "No corresponding function in stateTable for enum eState[" 
-						<< currentState.state << ']' <<  std::endl;
+					<< currentState.state << ']' <<  std::endl;
 				std::terminate();
 			} catch(MalformedEntry &e){
 				std::cerr << "Malformed Entry error, terminated: ";
 				std::cerr << std::hex << e.what() << " " << e.entry << " "
-					 << "0x" << e.location << std::endl;
+					<< "0x" << e.location << std::endl;
 				std::terminate();
 			}
 		}
@@ -186,7 +224,7 @@ void Xff::stateParse(){
 
 
 
-Xff::State Xff::runStart(const Entry &entry){
+State Xff::runStart(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	if(entry.index != 0 || entry.type != 0x6c){
 		throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), entry, "strip header");
 	}
@@ -199,7 +237,7 @@ Xff::State Xff::runStart(const Entry &entry){
 
 
 
-Xff::State Xff::runGetPosition(const Entry &entry){
+State Xff::runGetPosition(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	if(entry.index != 1 || entry.type != Entry::FLOAT32){
 		throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), entry, "position error ");
 	}
@@ -207,6 +245,10 @@ Xff::State Xff::runGetPosition(const Entry &entry){
 	std::vector<Ogre::Vector3> data;
 	data.resize(entry.count);
 	xff.read(reinterpret_cast<char*>(&data[0]), entry.count * sizeof(Ogre::Vector3));
+
+	foreach(Ogre::Vector3 vector, data)
+		vertices.push_back(Vertex(vector));
+
 	Entry nextEntry;
 	xff >> nextEntry;
 	if(Entry(1, 0, 0, 5) == nextEntry){
@@ -217,7 +259,7 @@ Xff::State Xff::runGetPosition(const Entry &entry){
 
 
 
-Xff::State Xff::runGetNormal(const Entry &entry){
+State Xff::runGetNormal(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	if(entry.index != 2){
 		throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), entry, "normal error ");
 	}
@@ -225,9 +267,27 @@ Xff::State Xff::runGetNormal(const Entry &entry){
 	if(entry.type == Entry::FLOAT32){
 		std::vector<Ogre::Vector3> normals(entry.count);
 		xff.read(reinterpret_cast<char*>(&normals[0]), entry.count * sizeof(Ogre::Vector3));
+
+		if(vertices.size() != normals.size())
+			throw MismatchedStrip();
+
+		std::vector<Ogre::Vector3>::iterator it = normals.begin();
+		foreach(Vertex &vertex, vertices){
+			vertex.setNormal(*it);
+			++it;
+		}
+
 	} else if(entry.type == Entry::FLOAT16){
 		std::vector<Fixed16> normals(entry.count);
 		xff.read(reinterpret_cast<char*>(&normals[0]), entry.count * sizeof(Fixed16));
+		if(vertices.size() != normals.size())
+			throw MismatchedStrip();
+
+		std::vector<Fixed16>::iterator it = normals.begin();
+		foreach(Vertex &vertex, vertices){
+			vertex.setNormal(it->getVector());
+			++it;
+		}
 	} else {
 		throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), entry, "normal error ");
 	}
@@ -242,15 +302,28 @@ Xff::State Xff::runGetNormal(const Entry &entry){
 
 
 
-Xff::State Xff::runGetTexture(const Entry &entry){
+State Xff::runGetTexture(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	Entry nextEntry;
 	xff >> nextEntry;
 	if(nextEntry.type == Entry::UVMAP){
 		std::vector<TextureMap> data(nextEntry.count);
 		xff.read(reinterpret_cast<char*>(&data[0]), nextEntry.count * sizeof(TextureMap));
+
+		if(vertices.size() != data.size())
+			throw MismatchedStrip();
+
+		std::vector<TextureMap>::iterator it = data.begin();
+		foreach(Vertex &vertex, vertices){
+			vertex.setUvMap(*it);
+			++it;
+		}
 	} else if(nextEntry.type == Entry::FLOAT16){
 		std::vector<Fixed16> textures(nextEntry.count);
 		xff.read(reinterpret_cast<char*>(&textures[0]), nextEntry.count * sizeof(Fixed16));
+
+		//FIXME add UVW to Vertex class
+
+
 	} else {
 		throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), nextEntry, "texture parse error ");
 	}
@@ -263,10 +336,19 @@ Xff::State Xff::runGetTexture(const Entry &entry){
 
 
 
-Xff::State Xff::runGetColour(const Entry &entry){
+State Xff::runGetColour(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	if(entry.type == Entry::COLOUR){
 		std::vector<Colour> data(entry.count);
 		xff.read(reinterpret_cast<char*>(&data[0]), entry.count * sizeof(Colour));
+		
+		if(vertices.size() != data.size())
+			throw MismatchedStrip();
+
+		std::vector<Colour>::iterator it = data.begin();
+		foreach(Vertex &vertex, vertices){
+			vertex.setColour(*it);
+			++it;
+		}
 	} else {
 		throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), entry, "colour error ");
 	}
@@ -280,10 +362,19 @@ Xff::State Xff::runGetColour(const Entry &entry){
 
 
 
-Xff::State Xff::runGetBones(const Entry &entry){
+State Xff::runGetBones(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	if(entry.type == Entry::VERTEXWEIGHT){
 		std::vector<VertexWeight> entries(entry.count);
 		xff.read(reinterpret_cast<char*>(&entries[0]), entry.count * sizeof(VertexWeight));
+
+		if(vertices.size() != entries.size())
+			throw MismatchedStrip();
+
+		std::vector<VertexWeight>::iterator it = entries.begin();
+		foreach(Vertex &vertex, vertices){
+			vertex.setBoneWeight(*it);
+			++it;
+		}
 	} else {
 		throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), entry, "vertex weight parse error ");
 	}
@@ -296,7 +387,14 @@ Xff::State Xff::runGetBones(const Entry &entry){
 }
 
 
-Xff::State Xff::runFinishStrip(const Entry& entry){
+State Xff::runFinishStrip(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
+
+	if(vertices.size() > 0){
+		surfaces.at(head.surface).addStrip(vertices);
+		vertices.clear();
+	}
+
+
 	Entry douche(0, 0, 0, 0x17);
 	xff >> last;
 	if(last == douche){

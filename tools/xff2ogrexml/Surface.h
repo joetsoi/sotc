@@ -39,6 +39,7 @@ namespace sotc {
 	};
 
 	typedef std::map<Vertex, int> UniqueMap;
+	typedef boost::tuple<int, int, int> Triple;
 	class Surface{
 		public:
 			Surface() {};
@@ -50,8 +51,7 @@ namespace sotc {
 			void createTriangleList();
 			const UniqueMap& getUniqueMap() const { return uniqueMap; }
 
-			typedef boost::tuple<int, int, int> Triple;
-			const std::vector<Triple>& getTriangles() { createTriangleList(); return faces; } //make mutable?
+			const std::vector<Triple>& getTriangles() const {  return faces; } //make mutable?
 		private:
 			//void createTrianglesFromStrip(const std::vector<Vertex> &strip);
 			std::vector<std::vector<Vertex> > strips;

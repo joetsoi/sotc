@@ -2,13 +2,15 @@
 namespace sotc {
 	void Vertex::setNormal(const Ogre::Vector3 &normal){
 		this->normal = normal;
+		hasNormal = true;
 	}
-	void Vertex::setTangent(const Ogre::Vector3 &tangent){
-		this->tangent = tangent;
-	}
+//	void Vertex::setTangent(const Ogre::Vector3 &tangent){
+//		this->tangent = tangent;
+//	}
 
 	void Vertex::setBoneWeight(const VertexWeight &vertexWeight){
 		this->vertexWeight = vertexWeight;
+		hasBones = true;
 	}
 
 	void Vertex::setColour(const Colour &colour){
@@ -17,6 +19,7 @@ namespace sotc {
 
 	void Vertex::setUvMap(const TextureMap &textureMap){
 		this->textureMap = textureMap;
+		hasTexture = true;
 	}
 
 
