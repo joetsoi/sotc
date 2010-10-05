@@ -10,8 +10,8 @@ add_definitions(-g -Wall -pedantic -Wno-long-long)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 find_package(OGRE REQUIRED)
-#find_package(OIS REQUIRED)
+find_package(OIS REQUIRED)
 #find_package(Boost COMPONENTS program_options REQUIRED)
-#subdirs(src tools)
-subdirs(tools)
+subdirs(src tools)
+#subdirs(tools)
 

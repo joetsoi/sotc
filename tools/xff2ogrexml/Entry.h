@@ -2,7 +2,7 @@
 #define Entry_h
 #include <stdint.h>
 #include <iostream>
-#include <OgreVector4.h>
+#include <OgreVector3.h>
 namespace sotc {
 	struct Entry{
 		uint8_t index;
@@ -24,6 +24,10 @@ namespace sotc {
 		inline bool operator==(const Entry &r) const{
 			return ( index == r.index && mask == r.mask
 					&& count == r.count && type == r.type);
+		}
+		
+		inline bool operator!=(const Entry &r) const{
+			return !(*this == r);
 		}
 
 		/*! \brief pretty print an Entry in a nice human readable format
@@ -51,11 +55,10 @@ namespace sotc {
 	
 	struct Fixed16{
 		int16_t x, y , z, w;
-		inline Ogre::Vector4 getVector() const { return Ogre::Vector4(
+		inline Ogre::Vector3 getVector() const { return Ogre::Vector3(
 			x * 0.000244140625,
 			y * 0.000244140625,
-			z * 0.000244140625,
-			w * 0.000244140625);
+			z * 0.000244140625);
 		};
 	};
 

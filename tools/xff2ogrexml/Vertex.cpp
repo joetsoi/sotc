@@ -1,7 +1,5 @@
 #include "Vertex.h"
 namespace sotc {
-	Vertex::Vertex(const Ogre::Vector3 &position, uint32_t surface) : position(position), surface(surface) {}
-
 	void Vertex::setNormal(const Ogre::Vector3 &normal){
 		this->normal = normal;
 	}

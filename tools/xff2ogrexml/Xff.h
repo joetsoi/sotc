@@ -10,7 +10,9 @@
 #include "Surface.h"
 #include "Texture.h"
 #include "SectionHeader.h"
-
+namespace Ogre{
+	class Vector3;
+}
 namespace sotc {
 	struct Entry;
 	class Xff{
@@ -19,6 +21,22 @@ namespace sotc {
 			Xff(const std::string &filename);
 
 			std::vector<Surface>& getSurfaces() { return surfaces; }
+			enum eState {
+				START,
+				GET_POSITION,
+				GET_NORMAL,
+				GET_TEXTURE,
+				GET_COLOUR,
+				GET_BONES,
+				FINISH_STRIP,
+				GET_SPECIAL
+			};
+
+			struct State{
+				State(eState state, const Entry &entry) : state(state), entry(entry) {}
+				eState state;
+				Entry entry;
+			};
 
 		private:
 			/*! \brief read and check a magic number of 4 char length
@@ -70,7 +88,7 @@ namespace sotc {
 			 * the first is the number of 'attributes' each strip has, the rest
 			 * i'm yet to figure out, but some seem constant throughout file
 			 */
-			int parseGeometryDataHeader();
+			int parseGeometryDataHeader(const Entry &entry);
 
 			/*! \brief header at the beginning of each strip
 			 *
@@ -91,7 +109,7 @@ namespace sotc {
 			 *
 			 * followed by the 3 floating points
 			 */
-			void parsePosition();
+			std::vector<Ogre::Vector3> parsePosition();
 
 			/*! \brief parse normals
 			 *
@@ -108,7 +126,7 @@ namespace sotc {
 			 *
 			 * if the float is 16 bit the last  value is ignored
 			 */
-			void parseNormal(const Entry &entry);
+			std::vector<Ogre::Vector3> parseNormal(const Entry &entry);
 			void parseColour(int &attributesRemaining);
 			void parseTexture();
 			void parseVertexWeight();
@@ -128,6 +146,16 @@ namespace sotc {
 
 			std::ifstream xff;
 
+			void stateParse();
+			State runStart(const Entry &entry);
+			State runGetPosition(const Entry &entry);
+			State runGetNormal(const Entry &entry);
+			State runGetTexture(const Entry &entry);
+			State runGetColour(const Entry &entry);
+			State runGetBones(const Entry &entry);
+
+			Entry last;
+			State runFinishStrip(const Entry &entry);
 	}; 
 }
 #endif
