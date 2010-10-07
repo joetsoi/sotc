@@ -4,6 +4,7 @@
 #include <boost/scoped_array.hpp>
 #include <boost/tuple/tuple.hpp>
 #include "Vertex.h"
+
 namespace sotc {
 	struct SurfaceHeader{
 		char magicNumber[4];
@@ -39,33 +40,44 @@ namespace sotc {
 	};
 
 	typedef std::map<Vertex, int> UniqueMap;
-	typedef boost::tuple<int, int, int> Triple;
+	typedef boost::tuple<int, int, int> Triangle;
 	class Surface{
 		public:
 			Surface() {};
-			Surface(const SurfaceHeader &surfaceHeader);
+			//Surface(const SurfaceHeader &surfaceHeader);
+			
 			void addStrip(const std::vector<Vertex> &strip) { strips.push_back(strip); }
-			Vertex& getVertexFromLastStrip(int i) { return strips.back().at(i); }
+			//void addStrip(const std::vector<Vertex> &strip) { strips.push_back(strip); }
+			
+			
+			void constructTriangleList();
 
+			//const std::vector<Strip>& getStrips() const { return strips; }
+			const std::vector<Triangle> getTriangles() const { return faces; }
+			//const std::vector<Vertex>& getVertices() const;
+			//int getTotalVertices () const { return totalVertices; }
+			
+			const UniqueMap& getUniqueMap() const { return vertexMap; }
+			/*
 			void uniqueVertices();
-			void createTriangleList();
-			const UniqueMap& getUniqueMap() const { return uniqueMap; }
 
 			const std::vector<Triple>& getTriangles() const {  return faces; } //make mutable?
+			*/
 		private:
+			void constructUniqueVertices();
 			//void createTrianglesFromStrip(const std::vector<Vertex> &strip);
+			std::vector<std::vector<int> > indexedVertices;
 			std::vector<std::vector<Vertex> > strips;
 
-			//! stores a list of unique vertices
-			//! built from the strips
-			UniqueMap uniqueMap;
+			UniqueMap vertexMap;
+			std::vector<Triangle> faces;
 
-			//! a list of vertices
-			std::vector<std::vector<int> > indexedVertices;
+			/*
+
 
 			//int vertexCount;
+			*/
 
-			std::vector<Triple> faces;
 	};
 }
 #endif

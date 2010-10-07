@@ -15,17 +15,19 @@ XmlOut::XmlOut( Xff &xff){
 	
 	typedef std::pair<int, Surface> SurfacePair;
 	foreach(SurfacePair surface, xff.getSurfaces()){
-		surface.second.createTriangleList();
 		TiXmlElement *submesh = new TiXmlElement("submesh");
 		submeshes->LinkEndChild(submesh);
 
-		submesh->SetAttribute("material", "testmaterial");
+		submesh->SetAttribute("material", "dummy.material");
+		submesh->SetAttribute("operationtype", "triangle_list");
 		submesh->SetAttribute("usesharedvertices", "false");
 
 		TiXmlElement *faces = new TiXmlElement("faces");
 		submesh->LinkEndChild(faces);
 
-		foreach(const Triple &triangle, surface.second.getTriangles()){
+		surface.second.constructTriangleList();
+		foreach(const Triangle &triangle, surface.second.getTriangles()){
+			std::cout << triangle.get<0>() << " " << triangle.get<1>() << " " << triangle.get<2>() << '\n';
 			TiXmlElement *face = new TiXmlElement("face");
 			faces->LinkEndChild(face);
 			face->SetAttribute("v1", triangle.get<0>());
@@ -40,7 +42,13 @@ XmlOut::XmlOut( Xff &xff){
 		TiXmlElement *vertexbuffer = new TiXmlElement("vertexbuffer");
 		geometry->LinkEndChild(vertexbuffer);
 
+		std::vector<Vertex> vertexList;
+		vertexList.resize(surface.second.getUniqueMap().size());
 		foreach(const UniqueMap::value_type &pair, surface.second.getUniqueMap()){
+			vertexList.at(pair.second) = pair.first;
+		}
+
+		foreach(Vertex v, vertexList){
 			TiXmlElement *vertex = new TiXmlElement("vertex");
 			vertexbuffer->LinkEndChild(vertex);
 			vertexbuffer->SetAttribute("positions", "true");	
@@ -48,15 +56,15 @@ XmlOut::XmlOut( Xff &xff){
 			TiXmlElement *position = new TiXmlElement("position");
 			vertex->LinkEndChild(position);
 
-			position->SetDoubleAttribute("x", pair.first.getPosition().x);
-			position->SetDoubleAttribute("y", pair.first.getPosition().y);
-			position->SetDoubleAttribute("z", pair.first.getPosition().z);
+			position->SetDoubleAttribute("x", v.getPosition().x);
+			position->SetDoubleAttribute("y", v.getPosition().y);
+			position->SetDoubleAttribute("z", v.getPosition().z);
 		}
 
 
 
 	}
-	doc.SaveFile(xff.filename + ".xml");
+	doc.SaveFile(xff.filename + ".mesh.xml");
 }
 
 int main(int argc, char *argv[]){

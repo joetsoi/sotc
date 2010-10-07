@@ -15,7 +15,7 @@ namespace sotc {
 			TextureMap textureMap;
 			uint32_t surface;
 		public:
-			Vertex(const Ogre::Vector3 &position) : position(position){
+			Vertex(const Ogre::Vector3 &position = Ogre::Vector3::ZERO) : position(position){
 				hasNormal = false;
 				hasTexture = false;
 				hasBones = false;

@@ -1,12 +1,11 @@
-I'm too impatient for the HD version next year so this is an
-exploration of shadow of the colossus' file formats.
+An extractor that converts SotC nmo files to ogreXML, also a general playground for me
+trying out various boost libaries and a bit of ogre.
 
-I'll also make an attempt at trying out silly c++ techniques
-(templates, policies, traits) or whatever else sounds interseting
-in libs like boost
-
-much stuff from
-
-http://repo.or.cz/dormin.git
-
-oh, don't expect any of it to actually work.
+General Guide
+-------------
+1. Go buy yourself a copy of Shadow Of The Colossus and a Ps2
+2. Play the fuck out of it for the next couple of months
+3. Now go get ICO and play the fuck out of that, at least twice so you get the nice extras
+4. Wait fervently for the HD remake and The Last Guardian
+5. Play the fuck out of those.
+1000. come back and see if I have done anything interesting. Probably not.
