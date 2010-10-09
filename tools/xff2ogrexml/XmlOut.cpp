@@ -1,8 +1,14 @@
-#include "tinyxml.h"
 #include "XmlOut.h"
+
+#include <string>
+#include <sstream>
+#include <iostream>
 #include <boost/foreach.hpp>
-#include "Surface.h"
 #define foreach BOOST_FOREACH
+#include "tinyxml.h"
+
+#include "Surface.h"
+#include "Entry.h"
 using namespace sotc;
 
 XmlOut::XmlOut( Xff &xff){
@@ -27,7 +33,6 @@ XmlOut::XmlOut( Xff &xff){
 
 		surface.second.constructTriangleList();
 		foreach(const Triangle &triangle, surface.second.getTriangles()){
-			std::cout << triangle.get<0>() << " " << triangle.get<1>() << " " << triangle.get<2>() << '\n';
 			TiXmlElement *face = new TiXmlElement("face");
 			faces->LinkEndChild(face);
 			face->SetAttribute("v1", triangle.get<0>());
@@ -59,6 +64,25 @@ XmlOut::XmlOut( Xff &xff){
 			position->SetDoubleAttribute("x", v.getPosition().x);
 			position->SetDoubleAttribute("y", v.getPosition().y);
 			position->SetDoubleAttribute("z", v.getPosition().z);
+
+			if(v.hasNormal){
+				TiXmlElement *normal = new TiXmlElement("normal");
+				vertex->LinkEndChild(normal);
+				normal->SetDoubleAttribute("x", v.getNormal().x);
+				normal->SetDoubleAttribute("y", v.getNormal().y);
+				normal->SetDoubleAttribute("z", v.getNormal().z);
+				vertexbuffer->SetAttribute("normals", "true");
+			}
+
+			vertexbuffer->SetAttribute("colour_diffuse", "true");
+			TiXmlElement *colour = new TiXmlElement("colour_diffuse");
+			vertex->LinkEndChild(colour);
+			Colour c = v.getColour();
+			
+			std::ostringstream o;
+			o << c.r/256.0 << " " << c.g/256.0 << " " << c.b/256.0 << " " << c.a/256.0;
+			colour->SetAttribute("value", o.str());
+
 		}
 
 

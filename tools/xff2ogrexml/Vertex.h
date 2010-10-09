@@ -23,12 +23,14 @@ namespace sotc {
 			uint32_t getSurface() const { return surface; }
 			void setNormal(const Ogre::Vector3 &normal);
 			Ogre::Vector3 const& getPosition() const{ return position; }
-			//void setTangent(const Ogre::Vector3 &tangent);
+			Ogre::Vector3 const& getNormal() const{ return normal; }
+			Colour const& getColour() const{ return colour; }
+			TextureMap const& getUvMap() const { return textureMap; }
+
 			void setBoneWeight(const VertexWeight &vertexWeight);
 			void setColour(const Colour &colour);
 			void setUvMap(const TextureMap &textureMap);
 			//void setUvMap(const Ogre::Vector3 &uvwMap);
-			TextureMap const& getUvMap() const { return textureMap; }
 
 			bool hasNormal;
 			bool hasTexture;

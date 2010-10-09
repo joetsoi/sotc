@@ -108,12 +108,13 @@ if(xff){
 
 
 void Xff::readAndCheckMagic4(const std::string &expected){
-	char magic[4];
-	xff.read(magic, sizeof(magic));
+	char magic[5];
+	xff.read(magic, 4);
+	magic[4] = '\0';
 	//perhaps substring expected down to 3 characters?
 	//doesn't account for length expected > length magic eg. if expected=xffMAGIC
 	//it would throw the exception, i figured it shouldn't make a huge difference
-	if(expected != magic){
+	if(expected.compare(std::string(magic)) != 0){
 		throw BadMagicException(expected.c_str(), magic);
 	}
 }
