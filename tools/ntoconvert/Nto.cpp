@@ -1,5 +1,6 @@
 #include "Nto.h"
 #include <stdexcept>
+#include <cassert>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 
@@ -101,15 +102,21 @@ void Nto::convertRgba(){
 
 			//assert(xff.tellg() == header.paletteAddress);
 			if(!header.swizzle){
+				std::vector<char> pixels;
+				pixels.resize(width * height / 2);
+				xff.seekg(header.pixelsAddress + rodataAddress);
+				xff.read(reinterpret_cast<char*>(&pixels[0]), pixels.size());
+
+				//assert(header.paletteAddress + rodataAddress == xff.tellg());
+				// assert only applies when there are no mipmaps, i'm not reading
+				// them at the moment
+				//
 				std::vector<RGBQUAD> palettes;
 				palettes.resize(16); //4bit texture therefore 16 colour palette
 				xff.seekg(header.paletteAddress + rodataAddress);
 				xff.read(reinterpret_cast<char*>(&palettes[0]), 16 * sizeof(RGBQUAD));
 
-				std::vector<char> pixels;
-				pixels.resize(width * height / 2);
-				xff.read(reinterpret_cast<char*>(&pixels[0]), pixels.size());
-				uint32_t i = 0;
+								uint32_t i = 0;
 				foreach(char pixelduo, pixels){
 					rgba[i] = palettes[pixelduo & 0xf];
 					rgba[i+1] = palettes[(pixelduo & 0xf0)>>4];
@@ -123,16 +130,21 @@ void Nto::convertRgba(){
 		case 0x13:
 		{
 			if(!header.swizzle){
+				xff.seekg(header.pixelsAddress + rodataAddress);
+				std::vector<uint8_t> pixels;
+				pixels.resize(width * height);
+				xff.read(reinterpret_cast<char*>(&pixels[0]), pixels.size());
+
+				//same as above this assert condition does not apply due to not
+				//reading mipmaps
+				//assert(header.paletteAddress + rodataAddress == xff.tellg());
 				std::vector<RGBQUAD> palettes;
 				palettes.resize(256);//8 bit texture therefore 256 colours
 				xff.seekg(header.paletteAddress + rodataAddress);
 				xff.read(reinterpret_cast<char*>(&palettes[0]), 256 * sizeof(RGBQUAD));
-				std::vector<uint8_t> pixels;
-				pixels.resize(width * height);
-				xff.read(reinterpret_cast<char*>(&pixels[0]), pixels.size());
 				int i = 0;
 				foreach(uint8_t pixel, pixels){
-					rgba[i] = palettes[pixel];
+					rgba[i] = palettes.at(pixel);
 					i++;
 				}
 			} else {
