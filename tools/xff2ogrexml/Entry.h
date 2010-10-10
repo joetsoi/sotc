@@ -72,7 +72,7 @@ namespace sotc {
 
 
 	struct TextureMap{
-		uint16_t u, v;
+		int16_t u, v;
 
 		inline friend std::ostream& operator<<(std::ostream &stream, TextureMap &t){
 			stream << "texture " << t.u << " " << t.v;

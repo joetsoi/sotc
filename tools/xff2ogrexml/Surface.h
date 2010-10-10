@@ -44,39 +44,31 @@ namespace sotc {
 	class Surface{
 		public:
 			Surface() {};
-			//Surface(const SurfaceHeader &surfaceHeader);
 			
 			void addStrip(const std::vector<Vertex> &strip) { strips.push_back(strip); }
-			//void addStrip(const std::vector<Vertex> &strip) { strips.push_back(strip); }
-			
 			
 			void constructTriangleList();
 
-			//const std::vector<Strip>& getStrips() const { return strips; }
 			const std::vector<Triangle> getTriangles() const { return faces; }
-			//const std::vector<Vertex>& getVertices() const;
-			//int getTotalVertices () const { return totalVertices; }
 			
+			uint32_t texture[3];
 			const UniqueMap& getUniqueMap() const { return vertexMap; }
-			/*
-			void uniqueVertices();
+			inline void setName(const std::string &s){ name = s; }
+			inline const std::string& getName() const { return name; }
+			inline void setTextures(int one, int two, int three){
+				texture[0] = one;
+				texture[1] = two;
+				texture[3] = three;
+			}
 
-			const std::vector<Triple>& getTriangles() const {  return faces; } //make mutable?
-			*/
 		private:
 			void constructUniqueVertices();
-			//void createTrianglesFromStrip(const std::vector<Vertex> &strip);
 			std::vector<std::vector<int> > indexedVertices;
 			std::vector<std::vector<Vertex> > strips;
 
 			UniqueMap vertexMap;
 			std::vector<Triangle> faces;
-
-			/*
-
-
-			//int vertexCount;
-			*/
+			std::string name;
 
 	};
 }

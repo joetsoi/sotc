@@ -41,7 +41,7 @@ Nto::Nto(const std::string &filename) : filename(filename) {
 		xff.read(reinterpret_cast<char*>(&header), sizeof(header));
 		width = 1 << (header.wh & 0xf);
 		height = 1 << (header.wh >> 4);
-		std::cout << "dim " << width << " " << height;
+		std::cout << "dim " << width << " " << height << " ";
 		std::cout << header.pixelsAddress << " " << header.paletteAddress << '\n';
 		convertRgba();
 	} else {
@@ -236,7 +236,7 @@ void Nto::saveImage(uint32_t width, uint32_t height){
 		for(uint32_t y = 0; y < height; ++y){
 			//BYTE *bits = FreeImage_GetScanLine(texture, y);
 			for(uint32_t x = 0; x < width; ++x){
-				RGBQUAD unswiz = rgba.at(y * height + x);
+				RGBQUAD unswiz = rgba.at(y * width + x);
 				RGBQUAD swiz = { unswiz.rgbRed, unswiz.rgbGreen,  unswiz.rgbBlue, 255 };
 				FreeImage_SetPixelColor(texture, x, y, &swiz);
 				//FreeImage_SetPixelColor(texture, x, y, &colour);

@@ -86,23 +86,28 @@ public:
 
 
 Xff::Xff(const std::string &filename) : filename(filename){
-xff.open(filename.c_str(), std::ios::in|std::ios::binary);
-if(xff){
-	try{
-		readAndCheckMagic4("xff\x00");
-	} catch (BadMagicException &e){
-		std::cerr << e.what() << " expected: " << e.expected
-			<< " got: " << e.actual << std::endl;
-	}
-	readLocations();
-	readHeaders();
-	stateParse();
+	xff.open(filename.c_str(), std::ios::in|std::ios::binary);
+	if(xff){
+		try{
+			readAndCheckMagic4("xff\x00");
+		} catch (BadMagicException &e){
+			std::cerr << e.what() << " expected: " << e.expected
+				<< " got: " << e.actual << std::endl;
+		}
+		readLocations();
+		readHeaders();
 
-	xff.close();
-} else {
-	std::cerr << "error opening file" << std::endl;
+		xff.close();
+	} else {
+		std::cerr << "error opening file" << std::endl;
+	}
 }
-//readVertices(xff);
+
+
+
+std::string Xff::basename(){
+	std::string base = filename.substr(filename.rfind("/") + 1);
+	return base.replace(base.rfind(".nmo"), 4, "");
 }
 
 
@@ -146,9 +151,12 @@ void Xff::readHeaders(){
 	readAndCheckMagic4("NMO\x00");
 
 	xff.ignore(44); //ignoring these bytes, i haven't figured them out yet.
+
+	SectionHeaders headers;
 	xff.read(reinterpret_cast<char*>(&headers), sizeof(headers));
 
 	//after reading the Section headers, goto the sections and read them
+	std::vector<TextureHeader> textureHeaders;
 	xff.seekg(rodataAddress + headers.textures.address, std::ios::beg);
 	textureHeaders.resize(headers.textures.numberOfEntries);
 	xff.read(reinterpret_cast<char*>(&textureHeaders[0])
@@ -158,20 +166,54 @@ void Xff::readHeaders(){
 	//headers should be contigious if they aren't something has gone wrong
 	//the assert checks that the texture header is followed by the surface header
 	assert(xff.tellg() == rodataAddress + headers.surfaces.address);
+	std::vector<SurfaceHeader> surfaceHeaders;
 	surfaceHeaders.resize(headers.surfaces.numberOfEntries);
 	xff.read(reinterpret_cast<char*>(&surfaceHeaders[0])
 			, headers.surfaces.numberOfEntries * sizeof(SurfaceHeader));
 
 	//same with the geometry header
 	assert(xff.tellg() == rodataAddress + headers.geometry.address);
+	std::vector<GeometryHeader> geometryHeaders;
 	geometryHeaders.resize(headers.geometry.numberOfEntries);
 	xff.read(reinterpret_cast<char*>(&geometryHeaders[0])
 			, headers.geometry.numberOfEntries * sizeof(GeometryHeader));
+
+	readNames(textureHeaders, surfaceHeaders);
+	stateParse(geometryHeaders);
 }
 
 
 
-void Xff::stateParse(){
+void Xff::readNames(std::vector<TextureHeader> textureHeaders
+					, std::vector<SurfaceHeader> surfaceHeaders){
+	xff.seekg(rodataAddress + textureHeaders[0].addressOfName);
+	foreach(TextureHeader texture, textureHeaders){
+		//xff.seekg(rodataAddress + texture.addressOfName, std::ios::beg);
+		char name[64];
+		xff.getline(&name[0], 63, '\0');
+		textures.push_back(std::string(name));
+	}
+	assert(xff.tellg() == rodataAddress + surfaceHeaders[0].addressOfNames);
+	int surfaceNumber = 0;
+	foreach(SurfaceHeader surface, surfaceHeaders){
+		//xff.seekg(rodataAddress + surface.addressOfNames, std::ios::beg);
+		//assuming no name is over 63 characters long!
+		char name[64];
+		//but it's ok, only a maximum of 63 are read.
+		xff.getline(&name[0], 63, '\0');
+		surfaces[surfaceNumber].setName(std::string(name));
+		surfaces[surfaceNumber].setTextures
+			( surface.textures[0].textureId
+			, surface.textures[1].textureId
+			, surface.textures[2].textureId
+			);
+		++surfaceNumber;
+	}
+}
+
+
+
+void Xff::stateParse(std::vector<GeometryHeader> geometryHeaders){
 	std::vector<boost::function<State (const GeometryHeader &header
 						, const Entry &entry, std::vector<Vertex> &vertices)> > stateTable;
 

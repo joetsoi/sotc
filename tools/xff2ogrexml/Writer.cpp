@@ -1,8 +1,9 @@
-#include "XmlOut.h"
+#include "Writer.h"
 
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 #include "tinyxml.h"
@@ -11,20 +12,29 @@
 #include "Entry.h"
 using namespace sotc;
 
-XmlOut::XmlOut( Xff &xff){
+typedef std::pair<int, Surface> SurfacePair;
+Writer::Writer(Xff &xff){
+	generateXml(xff);
+	generateMaterials(xff);
+}
+
+void Writer::generateXml(Xff &xff){
 	TiXmlDocument doc;
 	TiXmlElement *mesh = new TiXmlElement("mesh");
 	doc.LinkEndChild(mesh);
 
 	TiXmlElement *submeshes = new TiXmlElement("submeshes");
 	mesh->LinkEndChild(submeshes);
+
+	TiXmlElement *submeshnames = new TiXmlElement("submeshnames");
+	mesh->LinkEndChild(submeshnames);
 	
-	typedef std::pair<int, Surface> SurfacePair;
 	foreach(SurfacePair surface, xff.getSurfaces()){
 		TiXmlElement *submesh = new TiXmlElement("submesh");
 		submeshes->LinkEndChild(submesh);
 
-		submesh->SetAttribute("material", "dummy.material");
+		submesh->SetAttribute("material", xff.basename()
+			 + "/" + surface.second.getName());
 		submesh->SetAttribute("operationtype", "triangle_list");
 		submesh->SetAttribute("usesharedvertices", "false");
 
@@ -74,7 +84,7 @@ XmlOut::XmlOut( Xff &xff){
 				vertexbuffer->SetAttribute("normals", "true");
 			}
 
-			vertexbuffer->SetAttribute("colour_diffuse", "true");
+			vertexbuffer->SetAttribute("colours_diffuse", "true");
 			TiXmlElement *colour = new TiXmlElement("colour_diffuse");
 			vertex->LinkEndChild(colour);
 			Colour c = v.getColour();
@@ -83,13 +93,52 @@ XmlOut::XmlOut( Xff &xff){
 			o << c.r/256.0 << " " << c.g/256.0 << " " << c.b/256.0 << " " << c.a/256.0;
 			colour->SetAttribute("value", o.str());
 
+			if(v.hasTexture){
+				TiXmlElement *texture = new TiXmlElement("texcoord");
+				vertexbuffer->SetAttribute("texture_coords", 1);
+				//vertexbuffer->SetAttribute("texture_coord_dimensions_0", 2);
+				vertex->LinkEndChild(texture);
+				texture->SetDoubleAttribute("u", v.getUvMap().u * 0.000244140625);
+				texture->SetDoubleAttribute("v", v.getUvMap().v * 0.000244140625);
+			}
+
+
 		}
 
+		TiXmlElement *submeshname = new TiXmlElement("submeshname");
+		submeshnames->LinkEndChild(submeshname);
+		submeshname->SetAttribute("name", surface.second.getName());
+		submeshname->SetAttribute("index", surface.first);
 
 
 	}
 	doc.SaveFile(xff.filename + ".mesh.xml");
 }
+
+
+
+void Writer::generateMaterials(Xff &xff){
+	std::ofstream material((xff.basename() + ".material").c_str());
+	if(material.is_open()){
+		foreach(SurfacePair pair, xff.getSurfaces()){
+		material << "material " << xff.basename() << "/" << pair.second.getName() << '\n'
+			<< "{" << '\n' 
+			<< "\ttechnique" << '\n' 
+			<< "\t{" << '\n'
+			<< "\t\tpass" << '\n'
+			<< "\t\t{" << '\n'
+			<< "\t\t\ttexture_unit" << '\n' 
+			<< "\t\t\t{" << '\n' 
+			<< "\t\t\t\t" << xff.getTextures().at(pair.second.texture[0]) << ".png" << '\n'
+			<< "\t\t\t}" << '\n' 
+			<< "\t\t}" << '\n' 
+			<< "\t}" << '\n' 
+			<< "}" << '\n' << '\n';
+		}
+	}
+}
+
+
 
 int main(int argc, char *argv[]){
 //	std::ifstream xff(argv[1], std::ios::binary);
@@ -101,12 +150,11 @@ if(argc > 1){
 	for(int i = 1; i < argc; i++){
 		std::ifstream file(argv[i]);
 		Xff xff(argv[i]);
-		XmlOut out(xff);
+		Writer out(xff);
 	}
 }else{
-
-	Xff xff("/home/foobat/dormin/reeng/knight_A.nmo");
-	XmlOut out(xff);
+	Xff xff( "/home/foobat/dormin/reeng/knight_A.nmo");
+	Writer out(xff);
 }
 return 0;
 }
