@@ -41,8 +41,9 @@ Nto::Nto(const std::string &filename) : filename(filename) {
 		xff.read(reinterpret_cast<char*>(&header), sizeof(header));
 		width = 1 << (header.wh & 0xf);
 		height = 1 << (header.wh >> 4);
-		std::cout << "dim " << width << " " << height << " ";
-		std::cout << header.pixelsAddress << " " << header.paletteAddress << '\n';
+		std::cout << "dim " << width << " " << height << " pix";
+		std::cout << header.pixelsAddress << " pal" << header.paletteAddress
+			<< " t:" << (uint32_t) header.type << " s:" << (uint32_t)header.swizzle <<'\n';
 		convertRgba();
 	} else {
 		std::cerr << "error opening file" << std::endl;
@@ -238,13 +239,15 @@ void Nto::saveImage(uint32_t width, uint32_t height){
 			for(uint32_t x = 0; x < width; ++x){
 				RGBQUAD unswiz = rgba.at(y * width + x);
 				RGBQUAD swiz = { unswiz.rgbRed, unswiz.rgbGreen,  unswiz.rgbBlue, 255 };
-				FreeImage_SetPixelColor(texture, x, y, &swiz);
+				FreeImage_SetPixelColor(texture, x, (height - 1) - y, &swiz);
 				//FreeImage_SetPixelColor(texture, x, y, &colour);
 			}
 		}
 
 		//find last / for just the file name and change .nto to .png
-		std::string outfile = filename.substr(filename.rfind("/")+1, filename.length() - 3) + ".png";
+		
+		std::string outfile = filename.substr(filename.rfind("/")+1);
+		outfile.replace(outfile.rfind(".nto"), 4,".png");
 		std::cout << outfile << '\n';
 
 		FreeImage_Save(FIF_PNG, texture, outfile.c_str());
