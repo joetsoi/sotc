@@ -24,6 +24,21 @@ namespace sotc {
 
 
 
+	bool operator==(const Vertex& lhs, const Vertex &rhs){
+		if(lhs.getPosition() == rhs.getPosition()
+			&& lhs.getNormal() == rhs.getNormal()
+			&& lhs.getColour() == rhs.getColour()
+			&& lhs.getUvMap() == rhs.getUvMap()
+			&& lhs.getVertexWeight() == rhs.getVertexWeight()){
+
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+
+
 	bool operator< (const Vertex& lhs, const Vertex &rhs){
 		if(lhs.getPosition().x < rhs.getPosition().x){
 			return true;
@@ -31,7 +46,7 @@ namespace sotc {
 			if(lhs.getPosition().y < rhs.getPosition().y){
 				return true;
 			} else if(lhs.getPosition().y == rhs.getPosition().y) {
-				if(lhs.getPosition().x < rhs.getPosition().x){
+				if(lhs.getPosition().z < rhs.getPosition().z){
 					return true;
 				}
 			}

@@ -70,6 +70,13 @@ namespace sotc {
 		uint8_t r, g, b, a;
 	};
 
+	inline bool operator==(const Colour &lhs, const Colour &rhs){
+		if(lhs.r == rhs.r && lhs.g == rhs.g && lhs.b == rhs.b && lhs.a == rhs.a)
+			return true;
+		else
+			return false;
+	}
+
 
 	struct TextureMap{
 		int16_t u, v;
@@ -79,6 +86,13 @@ namespace sotc {
 			return stream;
 		}
 	};
+
+	inline bool operator==(const TextureMap &lhs, const TextureMap &rhs){
+		if(lhs.u == rhs.u && lhs.v == lhs.v)
+			return true;
+		else
+			return false;
+	}
 
 	struct VertexWeight{
 		float boneA;
@@ -90,6 +104,15 @@ namespace sotc {
 			return stream;
 		}
 	};
+
+	inline bool operator==(const VertexWeight &lhs, const VertexWeight &rhs){
+		if(lhs.boneA == rhs.boneB && lhs.boneB == rhs.boneB && lhs.boneC == rhs.boneC
+			&& lhs.numberOfBones == rhs.numberOfBones){
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	struct StartState{
 		uint8_t a, b;

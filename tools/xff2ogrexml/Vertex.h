@@ -26,6 +26,8 @@ namespace sotc {
 			Ogre::Vector3 const& getNormal() const{ return normal; }
 			Colour const& getColour() const{ return colour; }
 			TextureMap const& getUvMap() const { return textureMap; }
+			VertexWeight const& getVertexWeight() const { return vertexWeight; }
+
 
 			void setBoneWeight(const VertexWeight &vertexWeight);
 			void setColour(const Colour &colour);
@@ -38,6 +40,7 @@ namespace sotc {
 	};
 
 	//!
+	bool operator==(const Vertex &lhs, const Vertex &rhs);
 	bool operator< (const Vertex &lhs, const Vertex &rhs);
 	std::ostream &operator<<(std::ostream &stream, Vertex vertex);
 }

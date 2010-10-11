@@ -50,7 +50,7 @@ void Surface::constructTriangleList(){
 			//from taking a look at the strips themselves it looks like 
 			// v1 == v3 seems to be the common case, so i've put it in the first
 			// condition here
-			if(*i == *(i+2) || *i == *(i+1) || *(i+1) == *(i+2))
+			if(*i == *(i+2)) //|| *i == *(i+1) || *(i+1) == *(i+2))
 				continue;//degenerate triangle ignore it
 			else
 				faces.push_back(Triangle(*i, *(i+1), *(i+2)));
@@ -59,11 +59,27 @@ void Surface::constructTriangleList(){
 		//loop over odd vertices add to soup.
 		for(IntIterator i = strip.begin() + 1; i < strip.end() - 2; i += 2){
 			assert(strip.end() >= i+2);
-			if(*i == *(i+2) || *i == *(i+1) || *(i+1) == *(i+2))
+			if(*i == *(i+2))// || *i == *(i+1) || *(i+1) == *(i+2))
 				continue;//degenerate triangle ignore it
 			else
 				faces.push_back(Triangle(*(i+2), *(i+1), *i)); //note reverse orderin
 		}
+
+/*
+		int count = 0;
+		for(IntIterator i = strip.begin(); i < strip.end() - 2; ++i){
+			if(*i == *(i+2)){
+				continue;
+			} else {
+				if(count % 2 == 0){
+					faces.push_back(Triangle(*i, *(i+1), *(i+2)));
+				} else {
+					faces.push_back(Triangle(*(i+1), *(i+0), *(i+2)));
+				}
+			}
+			++count;
+		}
+*/
 	}
 }
 

@@ -192,6 +192,7 @@ void Xff::readNames(std::vector<TextureHeader> textureHeaders
 		char name[64];
 		xff.getline(&name[0], 63, '\0');
 		textures.push_back(std::string(name));
+		std::cout << name << '\n';
 	}
 	assert(xff.tellg() == rodataAddress + surfaceHeaders[0].addressOfNames);
 	int surfaceNumber = 0;
@@ -207,6 +208,7 @@ void Xff::readNames(std::vector<TextureHeader> textureHeaders
 			, surface.textures[1].textureId
 			, surface.textures[2].textureId
 			);
+		//std::cout surface.textures[
 		++surfaceNumber;
 	}
 }

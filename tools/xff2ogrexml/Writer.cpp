@@ -15,7 +15,7 @@ using namespace sotc;
 typedef std::pair<int, Surface> SurfacePair;
 Writer::Writer(Xff &xff){
 	generateXml(xff);
-	generateMaterials(xff);
+	//generateMaterials(xff);
 }
 
 void Writer::generateXml(Xff &xff){
@@ -126,12 +126,14 @@ void Writer::generateMaterials(Xff &xff){
 			<< "\ttechnique" << '\n' 
 			<< "\t{" << '\n'
 			<< "\t\tpass" << '\n'
-			<< "\t\t{" << '\n'
-			<< "\t\t\ttexture_unit" << '\n' 
+			<< "\t\t{" << '\n';
+			if(pair.second.texture[0] - 1 > 0){
+			std::cout << "\t\t\ttexture_unit" << '\n' 
 			<< "\t\t\t{" << '\n' 
-			<< "\t\t\t\t" << xff.getTextures().at(pair.second.texture[0]) << ".png" << '\n'
-			<< "\t\t\t}" << '\n' 
-			<< "\t\t}" << '\n' 
+			<< "\t\t\t\t" << "texture\t" << xff.getTextures().at(pair.second.texture[0] - 1) << ".png" << '\n'
+			<< "\t\t\t}" << '\n';
+			}
+			std::cout << "\t\t}" << '\n' 
 			<< "\t}" << '\n' 
 			<< "}" << '\n' << '\n';
 		}
