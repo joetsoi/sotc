@@ -43,7 +43,8 @@ namespace sotc {
 	typedef boost::tuple<int, int, int> Triangle;
 	class Surface{
 		public:
-			Surface() {};
+			Surface() {} // could throw an exception! to avoid this map thing
+			Surface(const std::string &name, const SurfaceHeader &header);
 			
 			void addStrip(const std::vector<Vertex> &strip) { strips.push_back(strip); }
 			
@@ -54,6 +55,7 @@ namespace sotc {
 			uint32_t texture[3];
 			const UniqueMap& getUniqueMap() const { return vertexMap; }
 			inline void setName(const std::string &s){ name = s; }
+			inline int getTriangleCount() const { return triangleCount; }
 			inline const std::string& getName() const { return name; }
 			inline void setTextures(int one, int two, int three){
 				texture[0] = one;
@@ -69,7 +71,8 @@ namespace sotc {
 			UniqueMap vertexMap;
 			std::vector<Triangle> faces;
 			std::string name;
-
+			int stripCount;
+			int triangleCount;
 	};
 }
 #endif

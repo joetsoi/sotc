@@ -44,6 +44,12 @@ T readObject(std::ifstream &xff){
 }
 
 
+class ErrorOpeningFile : public std::runtime_error{
+public:
+	ErrorOpeningFile(const char *msg = "error opening file") : std::runtime_error(msg){}
+};
+
+
 
 class ParseException : public std::runtime_error {
 public:
@@ -87,7 +93,7 @@ public:
 
 Xff::Xff(const std::string &filename) : filename(filename){
 	xff.open(filename.c_str(), std::ios::in|std::ios::binary);
-	if(xff){
+	if(xff.is_open()){
 		try{
 			readAndCheckMagic4("xff\x00");
 		} catch (BadMagicException &e){
@@ -99,7 +105,7 @@ Xff::Xff(const std::string &filename) : filename(filename){
 
 		xff.close();
 	} else {
-		std::cerr << "error opening file" << std::endl;
+		throw ErrorOpeningFile();
 	}
 }
 
@@ -108,6 +114,12 @@ Xff::Xff(const std::string &filename) : filename(filename){
 std::string Xff::basename(){
 	std::string base = filename.substr(filename.rfind("/") + 1);
 	return base.replace(base.rfind(".nmo"), 4, "");
+}
+
+
+
+std::string Xff::withoutExtension(){
+	return filename.substr(0, filename.rfind("."));
 }
 
 
@@ -202,13 +214,11 @@ void Xff::readNames(std::vector<TextureHeader> textureHeaders
 		char name[64];
 		//but it's ok, only a maximum of 63 are read.
 		xff.getline(&name[0], 63, '\0');
-		surfaces[surfaceNumber].setName(std::string(name));
-		surfaces[surfaceNumber].setTextures
-			( surface.textures[0].textureId
-			, surface.textures[1].textureId
-			, surface.textures[2].textureId
-			);
-		//std::cout surface.textures[
+		
+		surfaces.insert(std::pair<uint32_t, Surface>(surfaceNumber, Surface(name, surface)));
+
+
+		//set surface vertex/triangle/stripcount;
 		++surfaceNumber;
 	}
 }

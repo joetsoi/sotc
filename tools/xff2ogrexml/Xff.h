@@ -22,10 +22,12 @@ namespace sotc {
 			//Xff(std::ifstream &xff);
 			Xff(const std::string &filename);
 
-			std::map<int, Surface>& getSurfaces() { return surfaces; }
+			std::map<uint32_t, Surface>& getSurfaces() { return surfaces; }
 			std::vector<std::string>& getTextures() { return textures; }
 			std::string filename;
 			std::string basename();
+			std::string withoutExtension();
+			//std::string dirname();
 
 		private:
 			/*! \brief read and check a magic number of 4 char length
@@ -74,7 +76,7 @@ namespace sotc {
 			int offset;
 			int rodataAddress;
 			int rodataSize;
-			std::map<int, Surface> surfaces;
+			std::map<uint32_t, Surface> surfaces;
 			std::vector<std::string> textures;
 
 			std::ifstream xff;
