@@ -101,11 +101,16 @@ void Writer::generateXml(Xff &xff){
 					vertexbuffer->SetAttribute("texture_coords", 1);
 					//vertexbuffer->SetAttribute("texture_coord_dimensions_0", 2);
 					vertex->LinkEndChild(texture);
-					texture->SetDoubleAttribute("u", v.getUvMap().u * 0.000244140625);
-					texture->SetDoubleAttribute("v", v.getUvMap().v * 0.000244140625);
+					texture->SetDoubleAttribute("u", v.getUvMap().u / 4096.0);
+					texture->SetDoubleAttribute("v", v.getUvMap().v / 4096.0);
+				} else if(v.hasTexture32){
+					TiXmlElement *texture = new TiXmlElement("texcoord");
+					vertexbuffer->SetAttribute("texture_coords", 1);
+					//vertexbuffer->SetAttribute("texture_coord_dimensions_0", 2);
+					vertex->LinkEndChild(texture);
+					texture->SetDoubleAttribute("u", v.getTextureCoordinates().x);
+					texture->SetDoubleAttribute("v", v.getTextureCoordinates().y);
 				}
-
-
 			}
 
 			TiXmlElement *submeshname = new TiXmlElement("submeshname");

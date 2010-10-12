@@ -9,6 +9,7 @@
 #include <boost/bind.hpp>
 
 #include <OgreVector3.h>
+#include <OgreVector4.h>
 
 #include "Vertex.h"
 namespace sotc {
@@ -373,12 +374,15 @@ State Xff::runGetTexture(const GeometryHeader &head, const Entry &entry, std::ve
 			++it;
 		}
 	} else if(nextEntry.type == Entry::FLOAT16){
-		std::vector<Fixed16> textures(nextEntry.count);
-		xff.read(reinterpret_cast<char*>(&textures[0]), nextEntry.count * sizeof(Fixed16));
-
-		//FIXME add UVW to Vertex class
-
-
+		//TODO change float16 to also mean float32 * 2
+		std::vector<Ogre::Vector2> textures(nextEntry.count);
+		xff.read(reinterpret_cast<char*>(&textures[0]), nextEntry.count * sizeof(Ogre::Vector2));
+		
+		std::vector<Ogre::Vector2>::iterator it = textures.begin();
+		foreach(Vertex &vertex, vertices){
+			vertex.setUvMap(*it);
+			++it;
+		}
 	} else {
 		throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), nextEntry, "texture parse error ");
 	}

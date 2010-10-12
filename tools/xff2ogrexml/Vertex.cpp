@@ -22,6 +22,11 @@ namespace sotc {
 		hasTexture = true;
 	}
 
+	void Vertex::setUvMap(const Ogre::Vector2 &vector){
+		textureCoordinates = vector;
+		hasTexture32 = true;
+	}
+
 
 
 	bool operator==(const Vertex& lhs, const Vertex &rhs){
