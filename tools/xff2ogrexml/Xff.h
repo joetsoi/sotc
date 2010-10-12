@@ -1,4 +1,4 @@
-/*! based of code at http://repo.or.cz/dormin.git
+/*! based of code at http://repo.or.cz/dormin.git many thanks malc!
  */
 #ifndef Xff_h
 #define Xff_h

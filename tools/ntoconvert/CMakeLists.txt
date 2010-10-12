@@ -6,7 +6,7 @@ file(GLOB source_files
 #set(SOURCE_FILES
 #	src/test.cpp
 #)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 find_package(FreeImage REQUIRED)
 
