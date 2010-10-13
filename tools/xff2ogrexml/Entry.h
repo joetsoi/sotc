@@ -2,7 +2,10 @@
 #define Entry_h
 #include <stdint.h>
 #include <iostream>
+#include <OgreVector2.h>
 #include <OgreVector3.h>
+#include <OgreVector4.h>
+
 namespace sotc {
 	struct Entry{
 		uint8_t index;
@@ -60,6 +63,13 @@ namespace sotc {
 			y * 0.000244140625,
 			z * 0.000244140625);
 		}
+
+		inline Ogre::Vector4 getVector4() const { return Ogre::Vector4(
+			x / 4096.0,
+			y / 4096.0,
+			z / 4096.0,
+			w / 4096.0);
+		}
 	};
 
 	struct Colour{
@@ -78,8 +88,14 @@ namespace sotc {
 	}
 
 
+
 	struct TextureMap{
 		int16_t u, v;
+
+		inline Ogre::Vector2 getVector() const { return Ogre::Vector2(
+			u / 4096.0,
+			v / 4096.0);
+		}
 
 		inline friend std::ostream& operator<<(std::ostream &stream, TextureMap &t){
 			stream << "texture " << t.u << " " << t.v;
@@ -95,23 +111,35 @@ namespace sotc {
 	}
 
 	struct VertexWeight{
-		float boneA;
-		float boneB;
-		float boneC;
+		float bone[3];
 		uint32_t numberOfBones;
 		inline friend std::ostream& operator<<(std::ostream &stream, VertexWeight &t){
-			stream << "bone " << t.boneA << " " << t.boneB << " "<< t.boneC << " " << t.numberOfBones;
+			stream << "bone " << t.bone[0] << " " << t.bone[1] << " "<< t.bone[2] << " " << t.numberOfBones;
 			return stream;
 		}
 	};
 
 	inline bool operator==(const VertexWeight &lhs, const VertexWeight &rhs){
-		if(lhs.boneA == rhs.boneB && lhs.boneB == rhs.boneB && lhs.boneC == rhs.boneC
+		if(lhs.bone[0] == rhs.bone[0] && lhs.bone[1] == rhs.bone[1] && lhs.bone[2] == rhs.bone[2]
 			&& lhs.numberOfBones == rhs.numberOfBones){
 			return true;
 		} else {
 			return false;
 		}
+	}
+
+	inline bool operator<(const VertexWeight &lhs, const VertexWeight &rhs){
+		if(lhs.numberOfBones != rhs.numberOfBones)
+			return false;
+		for(uint32_t i = 0; i < lhs.numberOfBones; ++i){
+			if(lhs.bone[i] == rhs.bone[i])
+				continue;
+			else if(lhs.bone[i] < rhs.bone[i])
+				return true;
+			else
+				return false;
+		}
+		return false;
 	}
 
 	struct StartState{

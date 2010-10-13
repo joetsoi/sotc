@@ -370,17 +370,19 @@ State Xff::runGetTexture(const GeometryHeader &head, const Entry &entry, std::ve
 
 		std::vector<TextureMap>::iterator it = data.begin();
 		foreach(Vertex &vertex, vertices){
-			vertex.setUvMap(*it);
+			vertex.setUvMap(it->getVector());
 			++it;
 		}
 	} else if(nextEntry.type == Entry::FLOAT16){
 		//TODO change float16 to also mean float32 * 2
-		std::vector<Ogre::Vector2> textures(nextEntry.count);
-		xff.read(reinterpret_cast<char*>(&textures[0]), nextEntry.count * sizeof(Ogre::Vector2));
+		std::vector<Fixed16> textures(nextEntry.count);
+		//std::vector<Ogre::Vector2> textures(nextEntry.count);
+		xff.read(reinterpret_cast<char*>(&textures[0]), nextEntry.count * sizeof(Fixed16));
 		
-		std::vector<Ogre::Vector2>::iterator it = textures.begin();
+		std::vector<Fixed16>::iterator it = textures.begin();
 		foreach(Vertex &vertex, vertices){
-			vertex.setUvMap(*it);
+			Ogre::Vector4 v = it->getVector4();
+			vertex.setUvMap(Ogre::Vector2(v.x, v.y));
 			++it;
 		}
 	} else {

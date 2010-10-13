@@ -17,14 +17,15 @@ namespace sotc {
 		this->colour = colour;
 	}
 
-	void Vertex::setUvMap(const TextureMap &textureMap){
-		this->textureMap = textureMap;
-		hasTexture = true;
-	}
+//	void Vertex::setUvMap(const TextureMap &textureMap){
+//		this->textureMap = textureMap;
+//		hasTexture = true;
+//	}
 
 	void Vertex::setUvMap(const Ogre::Vector2 &vector){
+		std::cout << vector << '\n';
 		textureCoordinates = vector;
-		hasTexture32 = true;
+		hasTexture = true;
 	}
 
 
@@ -45,18 +46,36 @@ namespace sotc {
 
 
 	bool operator< (const Vertex& lhs, const Vertex &rhs){
-		if(lhs.getPosition().x < rhs.getPosition().x){
-			return true;
-		} else if(lhs.getPosition().x == rhs.getPosition().x) {
-			if(lhs.getPosition().y < rhs.getPosition().y){
+		for(int i = 0; i < 3; i++){
+			if(lhs.getPosition()[i] == rhs.getPosition()[i])
+				continue;
+			else if(lhs.getPosition()[i] < rhs.getPosition()[i])
 				return true;
-			} else if(lhs.getPosition().y == rhs.getPosition().y) {
-				if(lhs.getPosition().z < rhs.getPosition().z){
-					return true;
-				}
+			else
+				return false;
+		}
+
+		for(int i = 0; i < 3; i++){
+			if(lhs.getNormal()[i] == rhs.getNormal()[i])
+				continue;
+			else if(lhs.getNormal()[i] < rhs.getNormal()[i])
+				return true;
+			else
+				return false;
+		}
+
+		if(lhs.getUvMap().x < rhs.getUvMap().x){
+			return true;
+		} else if(lhs.getUvMap().x == rhs.getUvMap().x) {
+			if(lhs.getUvMap().y < rhs.getUvMap().y){
+				return true;
+			} else if(lhs.getVertexWeight() < rhs.getVertexWeight()) {
+				return true;
 			}
 		}
-		return false;	
+
+		return false;
+
 	}
 
 	std::ostream &operator<<(std::ostream &stream, Vertex vertex){

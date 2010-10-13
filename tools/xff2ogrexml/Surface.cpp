@@ -69,6 +69,7 @@ void Surface::constructTriangleList(){
 			if(*i == *(i+2))// || *i == *(i+1) || *(i+1) == *(i+2))
 				continue;//degenerate triangle ignore it
 			else
+				//faces.push_back(Triangle(*(i), *(i+1), *(i+2))); //note reverse orderin
 				faces.push_back(Triangle(*(i+2), *(i+1), *i)); //note reverse orderin
 		}
 	}
