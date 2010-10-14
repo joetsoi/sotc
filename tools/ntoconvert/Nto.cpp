@@ -250,7 +250,7 @@ void Nto::saveImage(uint32_t width, uint32_t height){
 			//BYTE *bits = FreeImage_GetScanLine(texture, y);
 			for(uint32_t x = 0; x < width; ++x){
 				RGBQUAD unswiz = rgba.at(y * width + x);
-				RGBQUAD swiz = { unswiz.rgbRed, unswiz.rgbGreen,  unswiz.rgbBlue, 255 };
+				RGBQUAD swiz = { unswiz.rgbRed, unswiz.rgbGreen,  unswiz.rgbBlue, unswiz.rgbReserved };
 				FreeImage_SetPixelColor(texture, x, (height - 1) - y, &swiz);
 				//FreeImage_SetPixelColor(texture, x, y, &colour);
 			}

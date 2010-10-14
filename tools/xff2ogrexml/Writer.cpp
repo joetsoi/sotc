@@ -13,14 +13,14 @@
 using namespace sotc;
 
 typedef std::pair<int, Surface> SurfacePair;
-Writer::Writer(Xff &xff, bool hasDestination, std::string outputDirectory)
+Writer::Writer(Model &model, bool hasDestination, std::string outputDirectory)
 		: hasDestination(hasDestination), outputDirectory(outputDirectory)
 {
-	generateXml(xff);
-	generateMaterials(xff);
+	generateXml(model);
+	generateMaterials(model);
 }
 
-void Writer::generateXml(Xff &xff){
+void Writer::generateXml(Model &model){
 	TiXmlDocument doc;
 	TiXmlElement *mesh = new TiXmlElement("mesh");
 	doc.LinkEndChild(mesh);
@@ -31,13 +31,12 @@ void Writer::generateXml(Xff &xff){
 	TiXmlElement *submeshnames = new TiXmlElement("submeshnames");
 	mesh->LinkEndChild(submeshnames);
 	
-	foreach(SurfacePair surface, xff.getSurfaces()){
+	foreach(SurfacePair surface, model.getSurfaces()){
 		if(surface.second.getTriangleCount() != 0){
 			TiXmlElement *submesh = new TiXmlElement("submesh");
 			submeshes->LinkEndChild(submesh);
 
-			submesh->SetAttribute("material", xff.basename()
-					+ "/" + surface.second.getName());
+			submesh->SetAttribute("material", model.name + "/" + surface.second.getName());
 			submesh->SetAttribute("operationtype", "triangle_list");
 			submesh->SetAttribute("usesharedvertices", "false");
 
@@ -123,34 +122,38 @@ void Writer::generateXml(Xff &xff){
 	}
 	std::string filename;
 	if(hasDestination){
-		filename = outputDirectory + "/" + xff.basename() + ".mesh.xml";
+		filename = outputDirectory + "/" + model.name + ".mesh.xml";
 	} else {
-		filename = xff.filename + ".mesh.xml";
+		filename = model.name + ".mesh.xml";
 	}
 	doc.SaveFile(filename);
 }
 
 
 
-void Writer::generateMaterials(Xff &xff){
+void Writer::generateMaterials(Model &model){
 	std::string filename;
 	if(hasDestination)
-		filename = outputDirectory + "/" +xff.basename() + ".material";
+		filename = outputDirectory + "/" + model.name + ".material";
 	else
-		filename = xff.filename + ".material";
+		filename = model.name + ".material";
 	std::ofstream material(filename.c_str());
 	std::cout << filename << '\n';
 	if(material.is_open()){
-		foreach(SurfacePair pair, xff.getSurfaces()){
-		material << "material " << xff.basename() << "/" << pair.second.getName() << '\n'
+		foreach(SurfacePair pair, model.getSurfaces()){
+		material << "material " << model.name << "/" << pair.second.getName() << '\n'
 			<< "{" << '\n' 
 			<< "\ttechnique" << '\n' 
 			<< "\t{" << '\n'
 			<< "\t\tpass" << '\n'
-			<< "\t\t{" << '\n'
-			<< "\t\t\ttexture_unit" << '\n' 
+			<< "\t\t{" << '\n';
+		if(model.getTexture(pair.second.texture[1]).isTransparent == 1){
+			material << "\t\t\tscene_blend alpha_blend" << '\n';
+		}
+		material << "\t\t\ttexture_unit" << '\n' 
 			<< "\t\t\t{" << '\n' 
-			<< "\t\t\t\t" << "texture\t" << xff.getTextures().at(pair.second.texture[1]) << ".png" << '\n'
+			//<< "\t\t\t\talpha_op_ex add src_diffuse src_texture" << '\n' 
+			<< "\t\t\t\t" << "texture\t" << model.getTexture(pair.second.texture[1]).name << ".png" << '\n'
 			<< "\t\t\t}" << '\n'
 			<< "\t\t}" << '\n' 
 			<< "\t}" << '\n' 
@@ -170,11 +173,10 @@ int main(int argc, char *argv[]){
 //	std::copy(istream_iterator(xff), istream_iterator(), std::back_inserter(buffer));
 	if(argc == 2){
 		Xff xff(argv[1]);
-		Writer out(xff);
+		Writer out(xff.getModel());
 	} else if(argc == 3){
 		Xff xff(argv[1]);
-		std::cout << argv[1];
-		Writer out(xff, true, std::string(argv[2]));
+		Writer out(xff.getModel(), true, std::string(argv[2]));
 	} else {
 		std::cout << "usage xff2ogrexml source [dest]" << std::endl;
 	}

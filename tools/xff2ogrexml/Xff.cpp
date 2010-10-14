@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <cassert>
 
+#include <boost/shared_ptr.hpp>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 #include <boost/function.hpp>
@@ -101,6 +102,7 @@ Xff::Xff(const std::string &filename) : filename(filename){
 			std::cerr << e.what() << " expected: " << e.expected
 				<< " got: " << e.actual << std::endl;
 		}
+		model.reset(new Model(basename()));
 		readLocations();
 		readHeaders();
 
@@ -204,7 +206,8 @@ void Xff::readNames(std::vector<TextureHeader> textureHeaders
 		//xff.seekg(rodataAddress + texture.addressOfName, std::ios::beg);
 		char name[64];
 		xff.getline(&name[0], 63, '\0');
-		textures.push_back(std::string(name));
+		//textures.push_back(std::string(name));
+		model->addTexture(Texture(name, texture.isTransparent));
 		std::cout << name << '\n';
 	}
 	assert(xff.tellg() == rodataAddress + surfaceHeaders[0].addressOfNames);
@@ -216,7 +219,8 @@ void Xff::readNames(std::vector<TextureHeader> textureHeaders
 		//but it's ok, only a maximum of 63 are read.
 		xff.getline(&name[0], 63, '\0');
 		
-		surfaces.insert(std::pair<uint32_t, Surface>(surfaceNumber, Surface(name, surface)));
+		//surfaces.insert(std::pair<uint32_t, Surface>(surfaceNumber, Surface(name, surface)));
+		model->addSurface(surfaceNumber, Surface(name, surface));
 
 
 		//set surface vertex/triangle/stripcount;
@@ -451,7 +455,8 @@ State Xff::runGetBones(const GeometryHeader &head, const Entry &entry, std::vect
 State Xff::runFinishStrip(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 
 	if(vertices.size() > 0){
-		surfaces[head.surface].addStrip(vertices);
+		model->getSurface(head.surface).addStrip(vertices);
+		//model->surfaces[head.surface].addStrip(vertices);
 		vertices.clear();
 	}
 

@@ -8,8 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "Surface.h"
-#include "Texture.h"
+#include "Model.h"
 #include "SectionHeader.h"
 namespace Ogre{
 	class Vector3;
@@ -22,8 +21,8 @@ namespace sotc {
 			//Xff(std::ifstream &xff);
 			Xff(const std::string &filename);
 
-			std::map<uint32_t, Surface>& getSurfaces() { return surfaces; }
-			std::vector<std::string>& getTextures() { return textures; }
+			Model& getModel(){ return *model; }
+
 			std::string filename;
 			std::string basename();
 			std::string withoutExtension();
@@ -76,8 +75,7 @@ namespace sotc {
 			int offset;
 			int rodataAddress;
 			int rodataSize;
-			std::map<uint32_t, Surface> surfaces;
-			std::vector<std::string> textures;
+			boost::shared_ptr<Model> model;
 
 			std::ifstream xff;
 

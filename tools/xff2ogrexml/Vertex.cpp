@@ -23,7 +23,6 @@ namespace sotc {
 //	}
 
 	void Vertex::setUvMap(const Ogre::Vector2 &vector){
-		std::cout << vector << '\n';
 		textureCoordinates = vector;
 		hasTexture = true;
 	}

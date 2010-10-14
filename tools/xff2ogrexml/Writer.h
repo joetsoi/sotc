@@ -2,12 +2,13 @@
 #define Writer_h
 #include <string>
 #include "Xff.h"
+#include "Model.h"
 namespace sotc {
 	class Writer{
 		public:
-			Writer(Xff &xff, bool hasDestination = false, std::string outputDirectory = "");
-			void generateXml(Xff &xff);
-			void generateMaterials(Xff &xff);
+			Writer(Model &model, bool hasDestination = false, std::string outputDirectory = "");
+			void generateXml(Model &model);
+			void generateMaterials(Model &model);
 		private:
 			bool hasDestination;
 			std::string outputDirectory;
