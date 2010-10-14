@@ -1,7 +1,6 @@
 #ifndef Writer_h
 #define Writer_h
 #include <string>
-#include "Xff.h"
 #include "Model.h"
 namespace sotc {
 	class Writer{

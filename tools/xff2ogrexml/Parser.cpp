@@ -1,4 +1,4 @@
-#include "Xff.h"
+#include "Parser.h"
 #include <exception>
 #include <stdint.h>
 #include <cassert>
@@ -93,7 +93,7 @@ public:
 
 
 
-Xff::Xff(const std::string &filename) : filename(filename){
+Parser::Parser(const std::string &filename) : filename(filename){
 	xff.open(filename.c_str(), std::ios::in|std::ios::binary);
 	if(xff.is_open()){
 		try{
@@ -114,20 +114,20 @@ Xff::Xff(const std::string &filename) : filename(filename){
 
 
 
-std::string Xff::basename(){
+std::string Parser::basename(){
 	std::string base = filename.substr(filename.rfind("/") + 1);
 	return base.replace(base.rfind(".nmo"), 4, "");
 }
 
 
 
-std::string Xff::withoutExtension(){
+std::string Parser::withoutExtension(){
 	return filename.substr(0, filename.rfind("."));
 }
 
 
 
-void Xff::readAndCheckMagic4(const std::string &expected){
+void Parser::readAndCheckMagic4(const std::string &expected){
 	char magic[5];
 	xff.read(magic, 4);
 	magic[4] = '\0';
@@ -141,7 +141,7 @@ void Xff::readAndCheckMagic4(const std::string &expected){
 
 
 
-void Xff::readLocations(){
+void Parser::readLocations(){
 	//const int NUMBER_OF_SECTIONS = 0x40;
 	const int OFFSET = 0x4c;//distance of section headers from beginning of file;
 	const int RODATA_SIZE = 0xa0;
@@ -161,7 +161,7 @@ void Xff::readLocations(){
 
 
 
-void Xff::readHeaders(){
+void Parser::readHeaders(){
 	xff.seekg(rodataAddress + offset,  std::ios::beg);
 	readAndCheckMagic4("NMO\x00");
 
@@ -199,7 +199,7 @@ void Xff::readHeaders(){
 
 
 
-void Xff::readNames(std::vector<TextureHeader> textureHeaders
+void Parser::readNames(std::vector<TextureHeader> textureHeaders
 					, std::vector<SurfaceHeader> surfaceHeaders){
 	xff.seekg(rodataAddress + textureHeaders[0].addressOfName);
 	foreach(TextureHeader texture, textureHeaders){
@@ -230,17 +230,17 @@ void Xff::readNames(std::vector<TextureHeader> textureHeaders
 
 
 
-void Xff::stateParse(std::vector<GeometryHeader> geometryHeaders){
+void Parser::stateParse(std::vector<GeometryHeader> geometryHeaders){
 	std::vector<boost::function<State (const GeometryHeader &header
 						, const Entry &entry, std::vector<Vertex> &vertices)> > stateTable;
 
-	stateTable.push_back(boost::bind(&Xff::runStart, this, _1, _2, _3));
-	stateTable.push_back(boost::bind(&Xff::runGetPosition, this, _1, _2, _3));
-	stateTable.push_back(boost::bind(&Xff::runGetNormal, this, _1, _2, _3));
-	stateTable.push_back(boost::bind(&Xff::runGetTexture, this, _1, _2, _3));
-	stateTable.push_back(boost::bind(&Xff::runGetColour, this, _1, _2, _3));
-	stateTable.push_back(boost::bind(&Xff::runGetBones, this, _1, _2, _3));
-	stateTable.push_back(boost::bind(&Xff::runFinishStrip, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Parser::runStart, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Parser::runGetPosition, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Parser::runGetNormal, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Parser::runGetTexture, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Parser::runGetColour, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Parser::runGetBones, this, _1, _2, _3));
+	stateTable.push_back(boost::bind(&Parser::runFinishStrip, this, _1, _2, _3));
 
 	xff.seekg(rodataAddress, std::ios::beg);
 
@@ -284,7 +284,7 @@ void Xff::stateParse(std::vector<GeometryHeader> geometryHeaders){
 
 
 
-State Xff::runStart(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
+State Parser::runStart(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	if(entry.index != 0 || entry.type != 0x6c){
 		throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), entry, "strip header");
 	}
@@ -297,7 +297,7 @@ State Xff::runStart(const GeometryHeader &head, const Entry &entry, std::vector<
 
 
 
-State Xff::runGetPosition(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
+State Parser::runGetPosition(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	if(entry.index != 1 || entry.type != Entry::FLOAT32){
 		throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), entry, "position error ");
 	}
@@ -319,7 +319,7 @@ State Xff::runGetPosition(const GeometryHeader &head, const Entry &entry, std::v
 
 
 
-State Xff::runGetNormal(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
+State Parser::runGetNormal(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	if(entry.index != 2){
 		throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), entry, "normal error ");
 	}
@@ -362,7 +362,7 @@ State Xff::runGetNormal(const GeometryHeader &head, const Entry &entry, std::vec
 
 
 
-State Xff::runGetTexture(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
+State Parser::runGetTexture(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	Entry nextEntry;
 	xff >> nextEntry;
 	if(nextEntry.type == Entry::UVMAP){
@@ -401,7 +401,7 @@ State Xff::runGetTexture(const GeometryHeader &head, const Entry &entry, std::ve
 
 
 
-State Xff::runGetColour(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
+State Parser::runGetColour(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	if(entry.type == Entry::COLOUR){
 		std::vector<Colour> data(entry.count);
 		xff.read(reinterpret_cast<char*>(&data[0]), entry.count * sizeof(Colour));
@@ -427,7 +427,7 @@ State Xff::runGetColour(const GeometryHeader &head, const Entry &entry, std::vec
 
 
 
-State Xff::runGetBones(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
+State Parser::runGetBones(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 	if(entry.type == Entry::VERTEXWEIGHT){
 		std::vector<VertexWeight> entries(entry.count);
 		xff.read(reinterpret_cast<char*>(&entries[0]), entry.count * sizeof(VertexWeight));
@@ -452,7 +452,7 @@ State Xff::runGetBones(const GeometryHeader &head, const Entry &entry, std::vect
 }
 
 
-State Xff::runFinishStrip(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
+State Parser::runFinishStrip(const GeometryHeader &head, const Entry &entry, std::vector<Vertex> &vertices){
 
 	if(vertices.size() > 0){
 		model->getSurface(head.surface).addStrip(vertices);
@@ -485,7 +485,7 @@ State Xff::runFinishStrip(const GeometryHeader &head, const Entry &entry, std::v
 
 
 
-int Xff::parseGeometryDataHeader(const Entry &entry){
+int Parser::parseGeometryDataHeader(const Entry &entry){
 	//The very first byte indicates how many sections there are i.e attributeNumbers.index
 	Entry two, three;
 	xff >> three >> two;

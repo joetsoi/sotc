@@ -1,7 +1,7 @@
 /*! based of code at http://repo.or.cz/dormin.git many thanks malc!
  */
-#ifndef Xff_h
-#define Xff_h
+#ifndef Parser_h
+#define Parser_h
 #include <iostream>
 #include <fstream>
 #include <map>
@@ -16,10 +16,9 @@ namespace Ogre{
 namespace sotc {
 	struct Entry;
 	class State;
-	class Xff{
+	class Parser{
 		public:
-			//Xff(std::ifstream &xff);
-			Xff(const std::string &filename);
+			Parser(const std::string &filename);
 
 			Model& getModel(){ return *model; }
 

@@ -8,8 +8,10 @@
 #define foreach BOOST_FOREACH
 #include "tinyxml.h"
 
+
 #include "Surface.h"
 #include "Entry.h"
+#include "Parser.h"
 using namespace sotc;
 
 typedef std::pair<int, Surface> SurfacePair;
@@ -172,10 +174,10 @@ int main(int argc, char *argv[]){
 //	typedef std::istream_iterator<char> istream_iterator;
 //	std::copy(istream_iterator(xff), istream_iterator(), std::back_inserter(buffer));
 	if(argc == 2){
-		Xff xff(argv[1]);
+		Parser xff(argv[1]);
 		Writer out(xff.getModel());
 	} else if(argc == 3){
-		Xff xff(argv[1]);
+		Parser xff(argv[1]);
 		Writer out(xff.getModel(), true, std::string(argv[2]));
 	} else {
 		std::cout << "usage xff2ogrexml source [dest]" << std::endl;
