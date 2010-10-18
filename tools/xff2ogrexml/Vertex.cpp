@@ -17,14 +17,18 @@ namespace sotc {
 		this->colour = colour;
 	}
 
-//	void Vertex::setUvMap(const TextureMap &textureMap){
-//		this->textureMap = textureMap;
-//		hasTexture = true;
-//	}
+
 
 	void Vertex::setUvMap(const Ogre::Vector2 &vector){
 		textureCoordinates = vector;
 		hasTexture = true;
+	}
+
+
+
+	void Vertex::setUvMap2(const Ogre::Vector2 &vector){
+		textureCoordinates2 = vector;
+		hasTexture2 = true;
 	}
 
 

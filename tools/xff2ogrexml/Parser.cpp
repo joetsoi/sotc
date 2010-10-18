@@ -387,6 +387,7 @@ State Parser::runGetTexture(const GeometryHeader &head, const Entry &entry, std:
 		foreach(Vertex &vertex, vertices){
 			Ogre::Vector4 v = it->getVector4();
 			vertex.setUvMap(Ogre::Vector2(v.x, v.y));
+			vertex.setUvMap2(Ogre::Vector2(v.z, v.w));
 			++it;
 		}
 	} else {

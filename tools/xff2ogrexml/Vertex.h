@@ -8,44 +8,38 @@ namespace sotc {
 
 	class Vertex{
 		public:
-			Vertex(const Ogre::Vector3 &position = Ogre::Vector3::ZERO) : position(position){
-				hasNormal = false;
-				hasTexture = false;
-				hasBones = false;
-				hasTexture = false;
-				//hasTexture32 = false;
-			}
+			Vertex(const Ogre::Vector3 &position = Ogre::Vector3::ZERO)  
+				: hasNormal(false), hasTexture(false)
+				, hasTexture2(false), hasBones(false), position(position){}
 			uint32_t getSurface() const { return surface; }
 			void setNormal(const Ogre::Vector3 &normal);
 			inline Ogre::Vector3 const& getPosition() const{ return position; }
 			inline Ogre::Vector3 const& getNormal() const{ return normal; }
 			inline Colour const& getColour() const{ return colour; }
-			//inline TextureMap const& getUvMap() const { return textureMap; }
 			inline Ogre::Vector2 const& getUvMap() const { return textureCoordinates; }
+			inline Ogre::Vector2 const& getUvMap2() const { return textureCoordinates2; }
 			inline VertexWeight const& getVertexWeight() const { return vertexWeight; }
 
 
 			void setBoneWeight(const VertexWeight &vertexWeight);
 			void setColour(const Colour &colour);
-			//void setUvMap(const TextureMap &textureMap);
 			void setUvMap(const Ogre::Vector2 &uv);
-			//void setUvMap(const Ogre::Vector3 &uvwMap);
+			void setUvMap2(const Ogre::Vector2 &uv);
 
 			bool hasNormal;
 			bool hasTexture;
-			//bool hasTexture32;
+			bool hasTexture2;
 			bool hasBones;
 		private:
 			Ogre::Vector3 position;
 			Ogre::Vector3 normal;
 			Colour colour;
 			Ogre::Vector2 textureCoordinates;
-			VertexWeight vertexWeight; //same as above
-			//TextureMap textureMap;
+			Ogre::Vector2 textureCoordinates2;
+			VertexWeight vertexWeight;
 			uint32_t surface;
 	};
 
-	//!
 	bool operator==(const Vertex &lhs, const Vertex &rhs);
 	bool operator< (const Vertex &lhs, const Vertex &rhs);
 	std::ostream &operator<<(std::ostream &stream, Vertex vertex);

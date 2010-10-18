@@ -1,7 +1,7 @@
 #ifndef Writer_h
 #define Writer_h
-#include <string>
 #include "Model.h"
+#include <string>
 namespace sotc {
 	class Writer{
 		public:

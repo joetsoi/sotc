@@ -97,13 +97,18 @@ void Writer::generateXml(Model &model){
 				o << c.r/256.0 << " " << c.g/256.0 << " " << c.b/256.0 << " " << c.a/256.0;
 				colour->SetAttribute("value", o.str());
 
-				if(v.hasTexture){
+				if(v.hasTexture2){
 					TiXmlElement *texture = new TiXmlElement("texcoord");
-					vertexbuffer->SetAttribute("texture_coords", 1);
+					vertexbuffer->SetAttribute("texture_coords", 2);
 					//vertexbuffer->SetAttribute("texture_coord_dimensions_0", 2);
 					vertex->LinkEndChild(texture);
 					texture->SetDoubleAttribute("u", v.getUvMap().x);
 					texture->SetDoubleAttribute("v", v.getUvMap().y);
+
+					TiXmlElement *texture2 = new TiXmlElement("texcoord");
+					vertex->LinkEndChild(texture2);
+					texture2->SetDoubleAttribute("u", v.getUvMap2().x);
+					texture2->SetDoubleAttribute("v", v.getUvMap2().y);
 				} else if(v.hasTexture){
 					TiXmlElement *texture = new TiXmlElement("texcoord");
 					vertexbuffer->SetAttribute("texture_coords", 1);
@@ -149,6 +154,7 @@ void Writer::generateMaterials(Model &model){
 			<< "\t{" << '\n'
 			<< "\t\tpass" << '\n'
 			<< "\t\t{" << '\n';
+
 		if(model.getTexture(pair.second.texture[1]).isTransparent == 1){
 			material << "\t\t\tscene_blend alpha_blend" << '\n';
 		}
@@ -157,6 +163,16 @@ void Writer::generateMaterials(Model &model){
 			//<< "\t\t\t\talpha_op_ex add src_diffuse src_texture" << '\n' 
 			<< "\t\t\t\t" << "texture\t" << model.getTexture(pair.second.texture[1]).name << ".png" << '\n'
 			<< "\t\t\t}" << '\n'
+
+		/*if(model.getTexture(pair.second.texture[2]).isTransparent == 1){
+			material << "\t\t\tscene_blend alpha_blend" << '\n';
+		}
+		material << "\t\t\ttexture_unit" << '\n' 
+			<< "\t\t\t{" << '\n' 
+			//<< "\t\t\t\talpha_op_ex add src_diffuse src_texture" << '\n' 
+			<< "\t\t\t\t" << "texture\t" << model.getTexture(pair.second.texture[2]).name << ".png" << '\n'
+			<< "\t\t\t}" << '\n'
+*/
 			<< "\t\t}" << '\n' 
 			<< "\t}" << '\n' 
 			<< "}" << '\n' << '\n';

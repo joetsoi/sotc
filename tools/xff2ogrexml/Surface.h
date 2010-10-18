@@ -1,7 +1,9 @@
 #ifndef Surface_h
 #define Surface_h
 #include <stdint.h>
-#include <boost/scoped_array.hpp>
+#include <vector>
+#include <string>
+#include <map>
 #include <boost/tuple/tuple.hpp>
 #include "Vertex.h"
 
