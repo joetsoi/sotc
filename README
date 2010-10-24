@@ -1,5 +1,5 @@
 An extractor that converts SotC nmo files to ogreXML, also a general playground for me
-trying out various boost libaries and a bit of ogre.
+trying out various boost libaries and a bit of ogre. maybe explore c++ templates and metaprogramming
 
 General Guide
 -------------
@@ -8,4 +8,17 @@ General Guide
 3. Now go get ICO and play the fuck out of that, at least twice so you get the nice extras
 4. Wait fervently for the HD remake and The Last Guardian
 5. Play the fuck out of those.
-1000. come back and see if I have done anything interesting. Probably not.
+1000. come back and see if I have done anything interesting.
+
+Once you've done that.
+
+Compiling
+_____________
+you'll need cmake, ogre, boost and freeimage
+
+mkdir build
+cd build
+cmake ../
+make
+
+for an out of source build

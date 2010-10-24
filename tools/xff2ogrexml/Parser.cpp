@@ -311,7 +311,9 @@ State Parser::runGetPosition(const GeometryHeader &head, const Entry &entry, std
 
 	Entry nextEntry;
 	xff >> nextEntry;
-	if(Entry(1, 0, 0, 5) == nextEntry){
+	Entry end;
+	end.init(1, 0, 0 ,5);
+	if(end == nextEntry){
 		return State(GET_TEXTURE, nextEntry);
 	}
 	return State(GET_NORMAL, nextEntry);
@@ -354,7 +356,9 @@ State Parser::runGetNormal(const GeometryHeader &head, const Entry &entry, std::
 
 	Entry nextEntry;
 	xff >> nextEntry;
-	if(Entry(1, 0, 0, 5) == nextEntry)
+	Entry end;
+	end.init(1, 0, 0, 5);
+	if(end == nextEntry)
 		return State(GET_TEXTURE, nextEntry);
 	
 	return State(GET_COLOUR, nextEntry);
@@ -420,7 +424,9 @@ State Parser::runGetColour(const GeometryHeader &head, const Entry &entry, std::
 	}
 	Entry nextEntry;
 	xff >> nextEntry;
-	if(nextEntry == Entry(0, 0, 0, 0x17)){
+	Entry endOfStrip;
+	endOfStrip.init(0, 0, 0, 0x17);
+	if(nextEntry == endOfStrip){
 		return State(FINISH_STRIP, nextEntry);
 	}
 	return State(GET_BONES, nextEntry);
@@ -446,7 +452,9 @@ State Parser::runGetBones(const GeometryHeader &head, const Entry &entry, std::v
 	}
 	Entry nextEntry;
 	xff >> nextEntry;
-	if(nextEntry == Entry(0, 0, 0, 0x17)){
+	Entry endOfStrip;
+	endOfStrip.init(0, 0, 0, 0x17);
+	if(nextEntry == endOfStrip){
 		return State(FINISH_STRIP, nextEntry);
 	} // else GET SPECIAL
 	throw MalformedEntry(static_cast<uint32_t>(xff.tellg()), entry, "end of strip != 0x17");
@@ -462,7 +470,8 @@ State Parser::runFinishStrip(const GeometryHeader &head, const Entry &entry, std
 	}
 
 
-	Entry douche(0, 0, 0, 0x17);
+	Entry douche;
+	douche.init(0, 0, 0, 0x17);
 	xff >> last;
 	if(last == douche){
 		xff >> last;
@@ -474,10 +483,12 @@ State Parser::runFinishStrip(const GeometryHeader &head, const Entry &entry, std
 		xff >> last;
 	}
 	
-	if(last == Entry(0, 0, 0, 0)){
+	Entry empty;
+	empty.init(0, 0, 0, 0);
+	if(last == empty){
 		//no operation slide if entry is 0, 0, 0, 0;
 		xff >> last;
-		while(last == Entry(0, 0, 0, 0)){
+		while(last == empty){
 			xff >> last;
 		}
 	}

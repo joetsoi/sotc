@@ -21,9 +21,16 @@ namespace sotc {
 			COLOUR = 0x6e
 		};
 
-		Entry() : index(0), mask(0), count(0), type(0) {}
-		Entry(uint8_t index, uint8_t mask, uint8_t count, uint8_t type)
-			: index(index), mask(mask), count(count), type(type) {}
+		inline void init(uint8_t index, uint8_t mask, uint8_t count, uint8_t type){
+			this->index = index;
+			this->mask = mask;
+			this->count = count;
+			this->type = type;
+		}
+
+		//Entry() : index(0), mask(0), count(0), type(0) {}
+		//Entry(uint8_t index, uint8_t mask, uint8_t count, uint8_t type)
+		//	: index(index), mask(mask), count(count), type(type) {}
 		inline bool operator==(const Entry &r) const{
 			return ( index == r.index && mask == r.mask
 					&& count == r.count && type == r.type);
