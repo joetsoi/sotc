@@ -45,7 +45,7 @@ namespace sotc{
 		Bone& setAttributes(const RawBone &raw);
 		inline const Ogre::Vector4& getPosition() const{ return translation; }
 		inline const Ogre::Quaternion& getRotation() const{ return rotation; }
-		uint32_t getParent() const { return parent; }
+		int32_t getParent() const { return parent; }
 	private:
 		inline Bone& setTranslation(const Ogre::Vector4 &vector);
 		inline Bone& setRotation(const Ogre::Quaternion &quaternion); 

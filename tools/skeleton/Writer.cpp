@@ -54,7 +54,7 @@ namespace sotc{
 					boneparent->SetAttribute("name", bone.getName());
 					boneparent->SetAttribute("parent", "root");
 					boneheirarchy->LinkEndChild(boneparent);
-				} else if(bone.getParent() != -1){
+				} else {
 					TiXmlElement *boneparent = new TiXmlElement("boneparent");
 					boneparent->SetAttribute("name", bone.getName());
 					boneparent->SetAttribute("parent", skeleton.getBones().at(count - 1).getName());
