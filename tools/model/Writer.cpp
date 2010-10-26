@@ -6,9 +6,8 @@
 #include <fstream>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
-#include "tinyxml.h"
-
-
+#include <tinyxml.h>
+#include <OgreStringConverter.h>
 #include "Surface.h"
 #include "Entry.h"
 #include "Parser.h"
@@ -32,7 +31,7 @@ void Writer::generateXml(Model &model){
 
 	TiXmlElement *submeshnames = new TiXmlElement("submeshnames");
 	mesh->LinkEndChild(submeshnames);
-	
+
 	foreach(SurfacePair surface, model.getSurfaces()){
 		if(surface.second.getTriangleCount() != 0){
 			TiXmlElement *submesh = new TiXmlElement("submesh");
@@ -66,6 +65,11 @@ void Writer::generateXml(Model &model){
 			foreach(const UniqueMap::value_type &pair, surface.second.getUniqueMap()){
 				vertexList.at(pair.second) = pair.first;
 			}
+
+			TiXmlElement* boneassignments = new TiXmlElement("boneasignments");
+			submesh->LinkEndChild(boneassignments);
+
+			int vertexCount = 0;
 
 			foreach(Vertex v, vertexList){
 				TiXmlElement *vertex = new TiXmlElement("vertex");
@@ -117,6 +121,20 @@ void Writer::generateXml(Model &model){
 					texture->SetDoubleAttribute("u", v.getUvMap().x);
 					texture->SetDoubleAttribute("v", v.getUvMap().y);
 				}
+
+				if(v.hasBones){
+					const VertexWeight &bones = v.getVertexWeight();
+					for(uint32_t i = 0; i < bones.numberOfBones; ++i){
+						TiXmlElement *vertexboneassignment = new TiXmlElement("vertexboneassignment");
+
+						vertexboneassignment->SetAttribute("vertexindex", vertexCount);
+						const std::pair<int, float> boneAndWeight = bones.getBoneAndWeight(i);
+						vertexboneassignment->SetAttribute("boneindex", boneAndWeight.first);
+						vertexboneassignment->SetDoubleAttribute("weight", boneAndWeight.second);
+						boneassignments->LinkEndChild(vertexboneassignment);
+					}
+				}
+				vertexCount++; //i hate myself so much
 			}
 
 			TiXmlElement *submeshname = new TiXmlElement("submeshname");
@@ -127,6 +145,11 @@ void Writer::generateXml(Model &model){
 
 		}
 	}
+	
+	TiXmlElement *skeletonlink = new TiXmlElement("skeletonlink");
+	skeletonlink->SetAttribute("name", model.name + ".skeleton");
+	mesh->LinkEndChild(skeletonlink);
+		
 	std::string filename;
 	if(hasDestination){
 		filename = outputDirectory + "/" + model.name + ".mesh.xml";

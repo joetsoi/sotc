@@ -1,7 +1,9 @@
 #ifndef Entry_h
 #define Entry_h
 #include <stdint.h>
+#include <cmath>
 #include <iostream>
+#include <utility>
 #include <OgreVector2.h>
 #include <OgreVector3.h>
 #include <OgreVector4.h>
@@ -123,6 +125,11 @@ namespace sotc {
 		inline friend std::ostream& operator<<(std::ostream &stream, VertexWeight &t){
 			stream << "bone " << t.bone[0] << " " << t.bone[1] << " "<< t.bone[2] << " " << t.numberOfBones;
 			return stream;
+		}
+
+		std::pair<int, float> getBoneAndWeight(uint32_t i) const{
+			assert(i < 3);
+			return std::make_pair(floor(bone[i]), bone[i] - floor(bone[i]));
 		}
 	};
 
