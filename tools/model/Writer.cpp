@@ -13,6 +13,8 @@
 #include "Parser.h"
 using namespace sotc;
 
+typedef Ogre::StringConverter Stringify;
+
 typedef std::pair<int, Surface> SurfacePair;
 Writer::Writer(Model &model, bool hasDestination, std::string outputDirectory)
 		: hasDestination(hasDestination), outputDirectory(outputDirectory)
@@ -79,16 +81,16 @@ void Writer::generateXml(Model &model){
 				TiXmlElement *position = new TiXmlElement("position");
 				vertex->LinkEndChild(position);
 
-				position->SetDoubleAttribute("x", v.getPosition().x);
-				position->SetDoubleAttribute("y", v.getPosition().y);
-				position->SetDoubleAttribute("z", v.getPosition().z);
+				position->SetAttribute("x", Stringify::toString(v.getPosition().x));
+				position->SetAttribute("y", Stringify::toString(v.getPosition().y));
+				position->SetAttribute("z", Stringify::toString(v.getPosition().z));
 
 				if(v.hasNormal){
 					TiXmlElement *normal = new TiXmlElement("normal");
 					vertex->LinkEndChild(normal);
-					normal->SetDoubleAttribute("x", v.getNormal().x);
-					normal->SetDoubleAttribute("y", v.getNormal().y);
-					normal->SetDoubleAttribute("z", v.getNormal().z);
+					normal->SetAttribute("x", Stringify::toString(v.getNormal().x));
+					normal->SetAttribute("y", Stringify::toString(v.getNormal().y));
+					normal->SetAttribute("z", Stringify::toString(v.getNormal().z));
 					vertexbuffer->SetAttribute("normals", "true");
 				}
 
@@ -106,20 +108,20 @@ void Writer::generateXml(Model &model){
 					vertexbuffer->SetAttribute("texture_coords", 2);
 					//vertexbuffer->SetAttribute("texture_coord_dimensions_0", 2);
 					vertex->LinkEndChild(texture);
-					texture->SetDoubleAttribute("u", v.getUvMap().x);
-					texture->SetDoubleAttribute("v", v.getUvMap().y);
+					texture->SetAttribute("u", Stringify::toString(v.getUvMap().x));
+					texture->SetAttribute("v", Stringify::toString(v.getUvMap().y));
 
 					TiXmlElement *texture2 = new TiXmlElement("texcoord");
 					vertex->LinkEndChild(texture2);
-					texture2->SetDoubleAttribute("u", v.getUvMap2().x);
-					texture2->SetDoubleAttribute("v", v.getUvMap2().y);
+					texture2->SetAttribute("u", Stringify::toString(v.getUvMap2().x));
+					texture2->SetAttribute("v", Stringify::toString(v.getUvMap2().y));
 				} else if(v.hasTexture){
 					TiXmlElement *texture = new TiXmlElement("texcoord");
 					vertexbuffer->SetAttribute("texture_coords", 1);
 					//vertexbuffer->SetAttribute("texture_coord_dimensions_0", 2);
 					vertex->LinkEndChild(texture);
-					texture->SetDoubleAttribute("u", v.getUvMap().x);
-					texture->SetDoubleAttribute("v", v.getUvMap().y);
+					texture->SetAttribute("u", Stringify::toString(v.getUvMap().x));
+					texture->SetAttribute("v", Stringify::toString(v.getUvMap().y));
 				}
 
 				if(v.hasBones){
@@ -130,7 +132,7 @@ void Writer::generateXml(Model &model){
 						vertexboneassignment->SetAttribute("vertexindex", vertexCount);
 						const std::pair<int, float> boneAndWeight = bones.getBoneAndWeight(i);
 						vertexboneassignment->SetAttribute("boneindex", boneAndWeight.first);
-						vertexboneassignment->SetDoubleAttribute("weight", boneAndWeight.second);
+						vertexboneassignment->SetAttribute("weight", Stringify::toString(boneAndWeight.second));
 						boneassignments->LinkEndChild(vertexboneassignment);
 					}
 				}
