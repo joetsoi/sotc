@@ -1,105 +1,105 @@
-#include "Xff.hpp"
-#include <stdint.h>
+#include "Skeleton.h"
 #include <fstream>
-#include <string>
-#include <vector>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
-#include <boost/iostreams/device/mapped_file.hpp>
 /*
  * 5c - 6c addresses?
  * 0xc4 = number of tuple things bonecount + 2
  */
-namespace sotc{
-	struct Header {
-		//uint32_t a; magic?
-		uint32_t boneCount;
-		uint32_t offset;
-		uint32_t addressOfNames;
-		uint32_t unknown[4];
-		uint32_t optionalBoneCount;
-		uint32_t optionalBonesAddress;
-		uint32_t optionalBoneNamesAddress;
-	};
+using namespace sotc;
+Bone::Bone(const BoneHeader &header) : header(header) { }
 
-	struct BoneHeader{
-		uint32_t address;
-		uint32_t unknown;
-	};
 
-	class Bone{
-	public:
-		Bone(const BoneHeader &header) : header(header) { }
-		inline void setName(std::string name){
-			this->name = name;
-		}
-		inline const BoneHeader& getHeader() const { return header; }
-	private:
-		BoneHeader header;
-		std::string name;
-	};
 
-	class Skeleton : public Xff<Skeleton> {
-	public:
-		Skeleton(const std::string &filename) : Xff<Skeleton>(filename) {
-			readHeaders();
-			readNames();
-			readBones();
-		}
-		void readHeaders(); 
-		void readNames();
-		void readBones();
-	private:
-		std::vector<Bone> bones;
-		Header header;
-	};
+void Bone::setName(std::string name){
+	this->name = name;
+}
 
-	void Skeleton::readHeaders(){
-		xff->seekg(rodataAddress + offset, std::ios::beg);
-		readAndCheckMagic4("\x01\x00\x00\x00");
-		xff->read(reinterpret_cast<char*>(&header), sizeof(header));
 
-		std::vector<BoneHeader> boneHeaders;
-		boneHeaders.reserve(header.boneCount + 2);
-		boneHeaders.resize(header.boneCount + 2);
-		xff->read(reinterpret_cast<char*>(&boneHeaders[0])
-				, (header.boneCount + 2) * sizeof(BoneHeader));
-		foreach(const BoneHeader &header, boneHeaders)
-			bones.push_back(Bone(header));
-	}
 
-	void Skeleton::readNames(){
-		xff->seekg(rodataAddress + header.addressOfNames);
-		foreach(Bone &bone, bones){
-			char name[64];
-			xff->getline(&name[0], 63, '\0');
-			bone.setName(name);
-		}
-	}
+const std::string& Bone::getName() const {
+	return name;
+}
 
-	void Skeleton::readBones(){
-		struct RawBone{
-			uint32_t childLeft, childRight, parent;
-			float bones[9];
-			int32_t a, b, c;
-			float d;
-		};
-		foreach(Bone &bone, bones){
-			xff->seekg(bone.getHeader().address + rodataAddress);
-			RawBone rawBone;
-			xff->read(reinterpret_cast<char*>(&rawBone), sizeof(RawBone));
-			std::cout << rawBone.a << '\n';
-		}
+
+
+const BoneHeader& Bone::getHeader() const {
+   	return header;
+}
+
+
+Bone& Bone::setAttributes(const RawBone &raw){
+	setTranslation(Ogre::Vector4(raw.translation));
+	setRotation(Ogre::Quaternion(raw.rotation[0]
+				, raw.rotation[1], raw.rotation[2], raw.rotation[3]));
+	setRelations(raw.childLeft, raw.childRight, raw.parent);
+	rawBone = raw;
+	return *this;
+}
+
+
+
+Bone& Bone::setTranslation(const Ogre::Vector4 &vector) {
+   	translation = vector; return *this;
+}
+
+
+
+Bone& Bone::setRotation(const Ogre::Quaternion &quaternion) {
+   	rotation = quaternion;
+   	return *this; 
+}
+
+
+
+Bone& Bone::setRelations(const uint32_t child0, const uint32_t child1, const uint32_t p){
+	childLeft = child0;
+	childRight = child1;
+	parent = p;
+	return *this;
+}
+
+Skeleton::Skeleton(const std::string &filename) : Xff<Skeleton>(filename) {
+	readHeaders();
+	readNames();
+	readBones();
+}
+
+const std::vector<Bone>& Skeleton::getBones() const{
+   	return bones;
+}
+
+
+
+void Skeleton::readHeaders(){
+	xff->seekg(rodataAddress + offset, std::ios::beg);
+	readAndCheckMagic4("\x01\x00\x00\x00");
+	xff->read(reinterpret_cast<char*>(&header), sizeof(header));
+
+	std::vector<BoneHeader> boneHeaders;
+	boneHeaders.reserve(header.boneCount);// + 2);
+	boneHeaders.resize(header.boneCount);// + 2);
+	xff->read(reinterpret_cast<char*>(&boneHeaders[0])
+			, (header.boneCount) * sizeof(BoneHeader));
+	foreach(const BoneHeader &header, boneHeaders)
+		bones.push_back(Bone(header));
+}
+
+void Skeleton::readNames(){
+	xff->seekg(rodataAddress + header.addressOfNames);
+	foreach(Bone &bone, bones){
+		char name[64];
+		xff->getline(&name[0], 63, '\0');
+		bone.setName(name);
 	}
 }
 
-int main(){
-	sotc::Skeleton skeleton("/home/foobat/dormin/reeng/knight_A.skb");
-	boost::iostreams::mapped_file test("/home/foobat/dormin/reeng/knight_A.skb");
-	std::cout << test.size() << '\n';
-	const int* offset = reinterpret_cast<const int*>(test.const_data() + 0x4c);
-	const int* rodataSize = reinterpret_cast<const int*>(test.const_data() + 0xa0);
-	const int* rodata = reinterpret_cast<const int*>(test.const_data() + 0xb4);
-	std::cout << *rodata << '\n';
-	return 0;
+void Skeleton::readBones(){
+	foreach(Bone &bone, bones){
+		xff->seekg(bone.getHeader().address + rodataAddress);
+		RawBone rawBone;
+		xff->read(reinterpret_cast<char*>(&rawBone), sizeof(RawBone));
+		bone.setAttributes(rawBone);
+	}
 }
+
