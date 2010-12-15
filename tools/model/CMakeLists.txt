@@ -14,6 +14,7 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 	${OGRE_INCLUDE_DIRS}
 	${TinyXML_INCLUDE_DIR}
+	${Boost_INCLUDE_DIRS}
 )
 add_executable(xff2ogrexml ${source_files})
 

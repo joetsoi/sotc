@@ -14,6 +14,7 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 	${OGRE_INCLUDE_DIRS}
 	${FreeImage_INCLUDE_DIRS}
+	${Boost_INCLUDE_DIRS}
 )
 add_executable(ntoconvert ${source_files})
 

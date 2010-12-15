@@ -38,9 +38,9 @@ public:
 	Xff(const std::string &filename);
 	void readAndCheckMagic4(const std::string &expected);
 	void readLocations();
-	//inline void readHeaders(){
-	//	static_cast<T*>(this)->readHeaders();
-	//}
+	inline void readHeadersDispatch(){
+		static_cast<T*>(this)->readHeaders();
+	}
 protected:
 	int offset;
 	int rodataAddress;
@@ -58,6 +58,7 @@ Xff<T>::Xff(const std::string &filename) : filename(filename)
 		try{
 			readAndCheckMagic4("xff\x00");
 			readLocations();
+			readHeadersDispatch();
 		} catch (BadMagicException &e){
 			std::cerr << e.what() << " expected: " << e.expected
 				<< " got: " << e.actual << std::endl;

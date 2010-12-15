@@ -69,6 +69,7 @@ namespace sotc{
 	private:
 		std::vector<Bone> bones;
 		Header header;
+		std::vector<int> test;
 	};
 }
 

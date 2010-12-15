@@ -60,7 +60,6 @@ Bone& Bone::setRelations(const uint32_t child0, const uint32_t child1, const uin
 }
 
 Skeleton::Skeleton(const std::string &filename) : Xff<Skeleton>(filename) {
-	readHeaders();
 	readNames();
 	readBones();
 }
@@ -72,7 +71,10 @@ const std::vector<Bone>& Skeleton::getBones() const{
 
 
 void Skeleton::readHeaders(){
-	xff->seekg(rodataAddress + offset, std::ios::beg);
+	std::cout << test.size();
+	test.resize(2);
+	test.push_back(1);
+	/*xff->seekg(rodataAddress + offset, std::ios::beg);
 	readAndCheckMagic4("\x01\x00\x00\x00");
 	xff->read(reinterpret_cast<char*>(&header), sizeof(header));
 
@@ -83,6 +85,7 @@ void Skeleton::readHeaders(){
 			, (header.boneCount) * sizeof(BoneHeader));
 	foreach(const BoneHeader &header, boneHeaders)
 		bones.push_back(Bone(header));
+	*/
 }
 
 void Skeleton::readNames(){
